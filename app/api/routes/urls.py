@@ -8,6 +8,7 @@ from app.core.config import get_settings
 from app.db.dependencies import get_db
 from app.db.models import URL
 from app.schemas.url import URLCreate, URLResponse
+from app.services.url_service import generate_unique_short_code
 
 router = APIRouter(
     prefix="/api/v1/urls",
@@ -23,14 +24,14 @@ DbSession = Annotated[Session, Depends(get_db)]
     status_code=status.HTTP_201_CREATED,
 )
 def create_url(payload: URLCreate, db: DbSession) -> URLResponse:
-    if payload.custom_alias is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="custom_alias is required until automatic short-code generation is implemented",
-        )
+    short_code = (
+        payload.custom_alias
+        if payload.custom_alias is not None
+        else generate_unique_short_code(db)
+    )
 
     url = URL(
-        short_code=payload.custom_alias,
+        short_code=short_code,
         original_url=str(payload.url),
         expires_at=payload.expires_at,
     )

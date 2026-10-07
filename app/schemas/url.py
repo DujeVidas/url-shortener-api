@@ -3,6 +3,14 @@ from datetime import datetime
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
 
 
+RESERVED_ALIASES = {
+    "api",
+    "docs",
+    "health",
+    "openapi.json",
+    "redoc",
+}
+
 class URLCreate(BaseModel):
     url: AnyHttpUrl
     custom_alias: str | None = Field(
@@ -18,6 +26,18 @@ class URLCreate(BaseModel):
     def validate_expiration(cls, value: datetime | None) -> datetime | None:
         if value is not None and value.tzinfo is None:
             raise ValueError("expires_at must include timezone information")
+
+        return value
+    
+
+    @field_validator("custom_alias")
+    @classmethod
+    def validate_custom_alias(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+
+        if value.lower() in RESERVED_ALIASES:
+            raise ValueError("custom alias is reserved")
 
         return value
 
