@@ -10,6 +10,7 @@ dependencies = [
     "sqlalchemy>=2.0,<3.0",
     "psycopg[binary]>=3.2,<4.0",
     "alembic>=1.14,<2.0",
+    "redis>=5.0,<7.0",
 ]
 
 [project.optional-dependencies]
@@ -18,3 +19,7 @@ dev = []
 [build-system]
 requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["alembic*"]
