@@ -15,6 +15,7 @@ app = FastAPI(
 
 app.include_router(urls_router)
 app.include_router(redirects_router)
+
 @app.get("/")
 async def root() -> dict[str, str]:
     return {"message": settings.app_name}
