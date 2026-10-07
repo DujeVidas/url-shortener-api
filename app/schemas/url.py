@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
 
@@ -24,8 +24,14 @@ class URLCreate(BaseModel):
     @field_validator("expires_at")
     @classmethod
     def validate_expiration(cls, value: datetime | None) -> datetime | None:
-        if value is not None and value.tzinfo is None:
+        if value is None:
+            return value
+        
+        if value.tzinfo is None:
             raise ValueError("expires_at must include timezone information")
+        
+        if value <= datetime.now(timezone.utc):
+            raise ValueError("expires_at must be in the future")
 
         return value
     

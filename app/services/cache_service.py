@@ -1,5 +1,6 @@
 from app.core.redis import redis_client
 import json
+from datetime import datetime
 
 
 CACHE_KEY_PREFIX = "url"
@@ -19,12 +20,13 @@ def get_cached_url(short_code: str) -> dict[str, int | str] | None:
     return json.loads(cached_value)
 
 
-def cache_url(short_code: str, url_id: int, original_url: str) -> None:
+def cache_url(short_code: str, url_id: int, original_url: str, expires_at: datetime | None) -> None:
 
     cached_value = json.dumps(
         {
             "url_id": url_id,
-            "original_url": original_url
+            "original_url": original_url,
+            "expires_at": expires_at.isoformat() if expires_at else None,
         }
     )
 

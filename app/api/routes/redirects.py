@@ -11,9 +11,16 @@ from app.db.models import URL
 from app.services.cache_service import cache_url, get_cached_url
 from app.services.analytics_service import record_click
 
+from datetime import datetime, timezone
+
 router = APIRouter()
 
 DbSession = Annotated[Session, Depends(get_db)]
+
+def is_expired(expires_at: datetime | None) -> bool:
+    if expires_at is None:
+        return False
+    return expires_at <= datetime.now(timezone.utc)
 
 
 @router.get("/{short_code}", response_class=RedirectResponse)
@@ -23,6 +30,19 @@ def redirect_to_url(short_code: str, request: Request, db: DbSession) -> Redirec
     if cached_url is not None:
         url_id = int(cached_url["url_id"])
         original_url = str(cached_url["original_url"])
+
+        expires_at_value = cached_url.get("expires_at")
+        expires_at = (
+            datetime.fromisoformat(str(expires_at_value))
+            if expires_at_value is not None
+            else None
+        )
+
+        if is_expired(expires_at):
+            raise HTTPException(
+                status_code=status.HTTP_410_GONE,
+                detail="Short URL has expired",
+            )
 
         record_click(
             db=db,
@@ -48,13 +68,19 @@ def redirect_to_url(short_code: str, request: Request, db: DbSession) -> Redirec
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Short URL not found",
         )
-    
+    if is_expired(url.expires_at):
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="Short URL has expired",
+        )
+
     cache_url(
         short_code=url.short_code, 
         url_id=url.id,
-        original_url=url.original_url
+        original_url=url.original_url,
+        expires_at=url.expires_at,
     )
-    
+
     record_click(
         db=db,
         url_id=url.id,
