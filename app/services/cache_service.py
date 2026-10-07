@@ -1,4 +1,5 @@
 from app.core.redis import redis_client
+import json
 
 
 CACHE_KEY_PREFIX = "url"
@@ -9,14 +10,27 @@ def _cache_key(short_code: str) -> str:
     return f"{CACHE_KEY_PREFIX}:{short_code}"
 
 
-def get_cached_url(short_code: str) -> str | None:
-    return redis_client.get(_cache_key(short_code))
+def get_cached_url(short_code: str) -> dict[str, int | str] | None:
+    cached_value = redis_client.get(_cache_key(short_code))
+
+    if cached_value is None:
+        return None
+
+    return json.loads(cached_value)
 
 
-def cache_url(short_code: str, original_url: str) -> None:
+def cache_url(short_code: str, url_id: int, original_url: str) -> None:
+
+    cached_value = json.dumps(
+        {
+            "url_id": url_id,
+            "original_url": original_url
+        }
+    )
+
     redis_client.set(
         _cache_key(short_code),
-        original_url,
+        cached_value,
         ex=CACHE_TTL_SECONDS,
     )
 
