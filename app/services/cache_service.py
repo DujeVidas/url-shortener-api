@@ -1,6 +1,10 @@
 from app.core.redis import redis_client
 import json
 from datetime import datetime
+import logging
+from redis.exceptions import RedisError
+
+logger = logging.getLogger(__name__)
 
 
 CACHE_KEY_PREFIX = "url"
@@ -12,12 +16,26 @@ def _cache_key(short_code: str) -> str:
 
 
 def get_cached_url(short_code: str) -> dict[str, int | str] | None:
-    cached_value = redis_client.get(_cache_key(short_code))
+    try:
+        cached_value = redis_client.get(_cache_key(short_code))
+    except RedisError:
+        logger.warning(
+            "Redis unavailable while reading short code %s",
+            short_code,
+        )
+        return None
 
     if cached_value is None:
         return None
 
-    return json.loads(cached_value)
+    try:
+        return json.loads(cached_value)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning(
+            "Invalid cached data for short code %s",
+            short_code,
+        )
+        return None
 
 
 def cache_url(short_code: str, url_id: int, original_url: str, expires_at: datetime | None) -> None:
@@ -29,13 +47,24 @@ def cache_url(short_code: str, url_id: int, original_url: str, expires_at: datet
             "expires_at": expires_at.isoformat() if expires_at else None,
         }
     )
-
-    redis_client.set(
-        _cache_key(short_code),
-        cached_value,
-        ex=CACHE_TTL_SECONDS,
-    )
+    try:
+        redis_client.set(
+            _cache_key(short_code),
+            cached_value,
+            ex=CACHE_TTL_SECONDS,
+        )
+    except RedisError:
+        logger.warning(
+            "Redis unavailable while caching short code %s",
+            short_code,
+        )
 
 
 def delete_cached_url(short_code: str) -> None:
-    redis_client.delete(_cache_key(short_code))
+    try:
+        redis_client.delete(_cache_key(short_code))
+    except RedisError:
+        logger.warning(
+            "Redis unavailable while invalidating short code %s",
+            short_code,
+        )
