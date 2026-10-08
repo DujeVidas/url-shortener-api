@@ -9,7 +9,12 @@ from app.core.config import get_settings
 from app.db.dependencies import get_db
 from app.db.models import URL
 from app.schemas.url import URLCreate, URLResponse
-from app.services.url_service import (MAX_CODE_GENERATION_ATTEMPTS, ShortCodeGenerationError, generate_unique_short_code)
+from app.services.url_service import (
+    MAX_CODE_GENERATION_ATTEMPTS, 
+    ShortCodeGenerationError, 
+    generate_unique_short_code,
+    is_short_code_collision,
+    )
 from app.schemas.analytics import URLAnalyticsResponse
 from app.services.analytics_service import get_url_analytics
 from app.services.cache_service import delete_cached_url
@@ -66,14 +71,17 @@ def create_url(
             db.refresh(url)
             break
 
-        except IntegrityError:
+        except IntegrityError as exc:
             db.rollback()
+
+            if not is_short_code_collision(exc):
+                raise
 
             if is_custom_alias:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="Custom alias already exists",
-                )
+                ) from exc
 
     else:
         raise HTTPException(

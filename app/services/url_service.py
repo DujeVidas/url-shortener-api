@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 
 from app.db.models import URL
 
+from sqlalchemy.exc import IntegrityError
+
 SHORT_CODE_LENGTH = 6
 
 SHORT_CODE_ALPHABET = string.ascii_letters + string.digits
@@ -14,6 +16,31 @@ MAX_CODE_GENERATION_ATTEMPTS = 5
 
 class ShortCodeGenerationError(Exception):
     """Raised when no available short code is found."""
+
+SHORT_CODE_UNIQUE_CONSTRAINT = "ix_urls_short_code"
+
+
+def is_short_code_collision(error: IntegrityError) -> bool:
+    original_error = error.orig
+
+    # PostgreSQL reports the violated constraint's name.
+    diagnostic = getattr(original_error, "diag", None)
+
+    constraint_name = getattr(
+        diagnostic,
+        "constraint_name",
+        None,
+    )
+
+    if constraint_name is not None:
+        return constraint_name == SHORT_CODE_UNIQUE_CONSTRAINT
+
+    # SQLite does not expose PostgreSQL-style diagnostics.
+    # This fallback is used by our SQLite endpoint tests.
+    return (
+        "UNIQUE constraint failed: urls.short_code"
+        in str(original_error)
+    )
 
 def generate_short_code(length: int = SHORT_CODE_LENGTH) -> str:
     return "".join(
