@@ -9,11 +9,13 @@ from app.core.config import get_settings
 from app.db.dependencies import get_db
 from app.db.models import URL
 from app.schemas.url import URLCreate, URLResponse
-from app.services.url_service import generate_unique_short_code
+from app.services.url_service import (MAX_CODE_GENERATION_ATTEMPTS, generate_unique_short_code)
 from app.schemas.analytics import URLAnalyticsResponse
 from app.services.analytics_service import get_url_analytics
 from app.services.cache_service import delete_cached_url
 
+
+settings = get_settings()
 
 router = APIRouter(
     prefix="/api/v1/urls",
@@ -28,34 +30,50 @@ DbSession = Annotated[Session, Depends(get_db)]
     response_model=URLResponse,
     status_code=status.HTTP_201_CREATED,
 )
-def create_url(payload: URLCreate, db: DbSession) -> URLResponse:
-    short_code = (
-        payload.custom_alias
-        if payload.custom_alias is not None
-        else generate_unique_short_code(db)
+def create_url(
+    payload: URLCreate,
+    db: DbSession,
+) -> URLResponse:
+    is_custom_alias = payload.custom_alias is not None
+
+    max_attempts = (
+        1 if is_custom_alias else MAX_CODE_GENERATION_ATTEMPTS
     )
 
-    url = URL(
-        short_code=short_code,
-        original_url=str(payload.url),
-        expires_at=payload.expires_at,
-    )
+    for _ in range(max_attempts):
+        short_code = (
+            payload.custom_alias
+            if is_custom_alias
+            else generate_unique_short_code(db)
+        )
 
-    db.add(url)
+        url = URL(
+            short_code=short_code,
+            original_url=str(payload.url),
+            expires_at=payload.expires_at,
+        )
 
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
+        db.add(url)
 
+        try:
+            db.commit()
+            db.refresh(url)
+            break
+
+        except IntegrityError:
+            db.rollback()
+
+            if is_custom_alias:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Custom alias already exists",
+                )
+
+    else:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Short code already exists",
-        ) from None
-
-    db.refresh(url)
-
-    settings = get_settings()
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Could not generate a unique short code",
+        )
 
     return URLResponse(
         short_code=url.short_code,
