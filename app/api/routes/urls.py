@@ -9,6 +9,9 @@ from app.db.dependencies import get_db
 from app.db.models import URL
 from app.schemas.url import URLCreate, URLResponse
 from app.services.url_service import generate_unique_short_code
+from app.schemas.analytics import URLAnalyticsResponse
+from app.services.analytics_service import get_url_analytics
+
 
 router = APIRouter(
     prefix="/api/v1/urls",
@@ -59,3 +62,21 @@ def create_url(payload: URLCreate, db: DbSession) -> URLResponse:
         created_at=url.created_at,
         expires_at=url.expires_at,
     )
+
+@router.get(
+    "/{short_code}/analytics",
+    response_model=URLAnalyticsResponse,
+)
+def get_analytics(
+    short_code: str,
+    db: DbSession,
+) -> URLAnalyticsResponse:
+    analytics = get_url_analytics(db, short_code)
+
+    if analytics is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Short URL not found",
+        )
+
+    return analytics
