@@ -28,12 +28,21 @@ def redirect_to_url(short_code: str, request: Request, db: DbSession) -> Redirec
     cached_url = get_cached_url(short_code)
 
     if cached_url is not None:
-        
-        url_id = cached_url.url_id
-        original_url = str(cached_url.original_url)
-        expires_at = cached_url.expires_at
+        statement = select(URL).where(
+            URL.id == cached_url.url_id,
+            URL.short_code == short_code,
+            URL.is_active.is_(True),
+        )
 
-        if is_expired(expires_at):
+        url = db.scalar(statement)
+
+        if url is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Short URL not found",
+            )
+
+        if is_expired(url.expires_at):
             raise HTTPException(
                 status_code=status.HTTP_410_GONE,
                 detail="Short URL has expired",
@@ -41,13 +50,13 @@ def redirect_to_url(short_code: str, request: Request, db: DbSession) -> Redirec
 
         record_click(
             db=db,
-            url_id=url_id,
+            url_id=url.id,
             referrer=request.headers.get("referer"),
             user_agent=request.headers.get("user-agent"),
         )
 
         return RedirectResponse(
-            url=original_url,
+            url=url.original_url,
             status_code=status.HTTP_307_TEMPORARY_REDIRECT,
         )
 

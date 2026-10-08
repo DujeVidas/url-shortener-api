@@ -102,12 +102,14 @@ def test_redirect_unknown_code_returns_404(client: TestClient):
     assert response.json()["detail"] == "Short URL not found"
 
 
-def test_expired_cached_url_returns_410(client: TestClient):
+def test_stale_cached_expiration_does_not_block_active_url(
+    client: TestClient,
+):
     create_response = client.post(
         "/api/v1/urls",
         json={
             "url": "https://example.com",
-            "custom_alias": "expired-cache-test",
+            "custom_alias": "stale-expiration-test",
         },
     )
 
@@ -126,9 +128,9 @@ def test_expired_cached_url_returns_410(client: TestClient):
         return_value=cached_url,
     ):
         response = client.get(
-            "/expired-cache-test",
+            "/stale-expiration-test",
             follow_redirects=False,
         )
 
-    assert response.status_code == 410
-    assert response.json()["detail"] == "Short URL has expired"
+    assert response.status_code == 307
+    assert response.headers["location"] == "https://example.com/"

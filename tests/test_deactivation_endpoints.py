@@ -2,6 +2,9 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
+from sqlalchemy import select
+from app.db.models import URL
+from app.schemas.cache import CachedURL
 
 def test_deactivate_url_returns_204(client: TestClient):
     create_response = client.post(
@@ -114,3 +117,49 @@ def test_analytics_survive_deactivation(client: TestClient):
 
     assert analytics_response.status_code == 200
     assert analytics_response.json()["total_clicks"] == 1
+
+def test_stale_cache_cannot_redirect_deactivated_url(client_and_db):
+    client, db = client_and_db
+
+    create_response = client.post(
+        "/api/v1/urls",
+        json={
+            "url": "https://example.com",
+            "custom_alias": "stale-cache-test",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    url = db.scalar(
+        select(URL).where(URL.short_code == "stale-cache-test")
+    )
+
+    assert url is not None
+
+    cached_url = CachedURL(
+        url_id=url.id,
+        original_url=url.original_url,
+        expires_at=url.expires_at,
+    )
+
+    # Simulate Redis invalidation failing during deactivation.
+    with patch("app.api.routes.urls.delete_cached_url"):
+        delete_response = client.delete(
+            "/api/v1/urls/stale-cache-test"
+        )
+
+    assert delete_response.status_code == 204
+
+    # Simulate Redis still returning the old cached URL.
+    with patch(
+        "app.api.routes.redirects.get_cached_url",
+        return_value=cached_url,
+    ):
+        redirect_response = client.get(
+            "/stale-cache-test",
+            follow_redirects=False,
+        )
+
+    assert redirect_response.status_code == 404
+    assert redirect_response.json()["detail"] == "Short URL not found"
