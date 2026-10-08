@@ -3,6 +3,8 @@ import json
 from datetime import datetime
 import logging
 from redis.exceptions import RedisError
+from pydantic import ValidationError
+from app.schemas.cache import CachedURL
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +17,7 @@ def _cache_key(short_code: str) -> str:
     return f"{CACHE_KEY_PREFIX}:{short_code}"
 
 
-def get_cached_url(short_code: str) -> dict[str, int | str] | None:
+def get_cached_url(short_code: str) -> CachedURL | None:
     try:
         cached_value = redis_client.get(_cache_key(short_code))
     except RedisError:
@@ -29,8 +31,8 @@ def get_cached_url(short_code: str) -> dict[str, int | str] | None:
         return None
 
     try:
-        return json.loads(cached_value)
-    except (json.JSONDecodeError, TypeError):
+        return CachedURL.model_validate_json(cached_value)
+    except (ValidationError, ValueError, TypeError):
         logger.warning(
             "Invalid cached data for short code %s",
             short_code,

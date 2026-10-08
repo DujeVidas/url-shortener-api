@@ -28,15 +28,10 @@ def redirect_to_url(short_code: str, request: Request, db: DbSession) -> Redirec
     cached_url = get_cached_url(short_code)
 
     if cached_url is not None:
-        url_id = int(cached_url["url_id"])
-        original_url = str(cached_url["original_url"])
-
-        expires_at_value = cached_url.get("expires_at")
-        expires_at = (
-            datetime.fromisoformat(str(expires_at_value))
-            if expires_at_value is not None
-            else None
-        )
+        
+        url_id = cached_url.url_id
+        original_url = str(cached_url.original_url)
+        expires_at = cached_url.expires_at
 
         if is_expired(expires_at):
             raise HTTPException(
