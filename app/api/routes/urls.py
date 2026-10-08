@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from app.core.config import get_settings
 from app.db.dependencies import get_db
@@ -11,6 +12,7 @@ from app.schemas.url import URLCreate, URLResponse
 from app.services.url_service import generate_unique_short_code
 from app.schemas.analytics import URLAnalyticsResponse
 from app.services.analytics_service import get_url_analytics
+from app.services.cache_service import delete_cached_url
 
 
 router = APIRouter(
@@ -80,3 +82,28 @@ def get_analytics(
         )
 
     return analytics
+
+
+@router.delete(
+    "/{short_code}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def deactivate_url(
+    short_code: str,
+    db: DbSession,
+) -> None:
+    url = db.scalar(
+        select(URL).where(URL.short_code == short_code)
+    )
+
+    if url is None or not url.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Short URL not found",
+        )
+
+    url.is_active = False
+
+    db.commit()
+
+    delete_cached_url(short_code)
