@@ -9,7 +9,7 @@ from app.core.config import get_settings
 from app.db.dependencies import get_db
 from app.db.models import URL
 from app.schemas.url import URLCreate, URLResponse
-from app.services.url_service import (MAX_CODE_GENERATION_ATTEMPTS, generate_unique_short_code)
+from app.services.url_service import (MAX_CODE_GENERATION_ATTEMPTS, ShortCodeGenerationError, generate_unique_short_code)
 from app.schemas.analytics import URLAnalyticsResponse
 from app.services.analytics_service import get_url_analytics
 from app.services.cache_service import delete_cached_url
@@ -41,11 +41,17 @@ def create_url(
     )
 
     for _ in range(max_attempts):
-        short_code = (
-            payload.custom_alias
-            if is_custom_alias
-            else generate_unique_short_code(db)
-        )
+        try:
+            short_code = (
+                payload.custom_alias
+                if is_custom_alias
+                else generate_unique_short_code(db)
+            )
+        except ShortCodeGenerationError:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Could not generate a unique short code",
+            ) from None
 
         url = URL(
             short_code=short_code,

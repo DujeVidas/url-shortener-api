@@ -12,6 +12,9 @@ SHORT_CODE_ALPHABET = string.ascii_letters + string.digits
 
 MAX_CODE_GENERATION_ATTEMPTS = 5
 
+class ShortCodeGenerationError(Exception):
+    """Raised when no available short code is found."""
+
 def generate_short_code(length: int = SHORT_CODE_LENGTH) -> str:
     return "".join(
         secrets.choice(SHORT_CODE_ALPHABET)
@@ -26,8 +29,12 @@ def short_code_exists(db: Session, short_code: str) -> bool:
 
 
 def generate_unique_short_code(db: Session) -> str:
-    while True:
+    for _ in range(MAX_CODE_GENERATION_ATTEMPTS):
         short_code = generate_short_code()
 
         if not short_code_exists(db, short_code):
             return short_code
+
+    raise ShortCodeGenerationError(
+        "Could not generate a unique short code"
+    )
