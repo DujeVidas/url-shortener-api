@@ -64,3 +64,46 @@ def test_all_services_have_memory_limits():
 
     for service_name, expected_limit in expected_limits.items():
         assert services[service_name]["mem_limit"] == expected_limit
+
+def test_api_prevents_privilege_escalation():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    api = config["services"]["api"]
+
+    assert "no-new-privileges:true" in api["security_opt"]
+
+
+def test_api_drops_linux_capabilities():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    api = config["services"]["api"]
+
+    assert api["cap_drop"] == ["ALL"]
+
+
+def test_api_has_read_only_root_filesystem():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    api = config["services"]["api"]
+
+    assert api["read_only"] is True
+
+
+def test_api_has_writable_temporary_filesystem():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    api = config["services"]["api"]
+
+    assert "/tmp:rw,nosuid,nodev,size=64m" in api["tmpfs"]
