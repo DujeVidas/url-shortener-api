@@ -1,6 +1,7 @@
 from starlette.datastructures import Headers
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+from app.core.error_responses import error_response
 
 
 class RequestBodyTooLarge(Exception):
@@ -75,8 +76,8 @@ class RequestSizeLimitMiddleware:
         receive: Receive,
         send: Send,
     ) -> None:
-        response = JSONResponse(
+        response = error_response(
             status_code=413,
-            content={"detail": "Request body too large"},
+            detail="Request body too large",
         )
         await response(scope, receive, send)

@@ -40,9 +40,8 @@ def test_request_exceeding_content_length_is_rejected():
     )
 
     assert response.status_code == 413
-    assert response.json() == {
-        "detail": "Request body too large"
-    }
+    assert response.json()["detail"] == "Request body too large"
+    assert "request_id" in response.json()
 
 
 def test_request_at_limit_is_allowed():

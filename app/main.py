@@ -9,6 +9,14 @@ from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.request_size import RequestSizeLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from app.core.exception_handlers import (
+    http_exception_handler,
+    validation_exception_handler,
+)
+
 settings = get_settings()
 
 app = FastAPI(
@@ -27,6 +35,16 @@ app.add_middleware(
     max_body_bytes=get_settings().max_request_body_bytes
 )
 app.add_middleware(RequestIDMiddleware)
+
+app.add_exception_handler(
+    StarletteHTTPException,
+    http_exception_handler,
+)
+
+app.add_exception_handler(
+    RequestValidationError,
+    validation_exception_handler,
+)
 
 app.include_router(health.router)
 app.include_router(urls_router)
