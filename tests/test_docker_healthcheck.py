@@ -135,3 +135,13 @@ def test_all_services_have_log_rotation():
 
         assert options["max-size"] == "10m"
         assert options["max-file"] == "3"
+
+def test_api_has_graceful_shutdown_period():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    api = config["services"]["api"]
+
+    assert api["stop_grace_period"] == "30s"

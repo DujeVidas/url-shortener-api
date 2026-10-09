@@ -23,6 +23,7 @@ def test_uvicorn_uses_configured_host_and_port():
         port=8000,
         access_log=False,
         log_level="info",
+        timeout_graceful_shutdown=25,
     )
 
 
@@ -45,4 +46,5 @@ def test_uvicorn_accepts_custom_host_and_port():
         port=9000,
         access_log=False,
         log_level="info",
+        timeout_graceful_shutdown=25,
     )

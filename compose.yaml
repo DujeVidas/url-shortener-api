@@ -1,6 +1,7 @@
 services:
   api:
     restart: unless-stopped
+    stop_grace_period: 30s
     mem_limit: 512m
     logging:
       driver: "json-file"

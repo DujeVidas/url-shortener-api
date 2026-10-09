@@ -9,6 +9,7 @@ def main() -> None:
         port=settings.app_port,
         access_log=False,
         log_level="info",
+        timeout_graceful_shutdown=25,
     )
 
 
