@@ -145,3 +145,13 @@ def test_api_has_graceful_shutdown_period():
     api = config["services"]["api"]
 
     assert api["stop_grace_period"] == "30s"
+
+def test_api_configures_database_connect_timeout():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    api = config["services"]["api"]
+
+    assert api["environment"]["DB_CONNECT_TIMEOUT"] == "5"
