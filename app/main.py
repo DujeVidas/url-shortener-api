@@ -7,6 +7,7 @@ from app.api.routes import health
 from app.core.logging import configure_logging
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.request_size import RequestSizeLimitMiddleware
+from app.middleware.request_id import RequestIDMiddleware
 
 settings = get_settings()
 
@@ -25,6 +26,8 @@ app.add_middleware(
     RequestSizeLimitMiddleware,
     max_body_bytes=get_settings().max_request_body_bytes
 )
+app.add_middleware(RequestIDMiddleware)
+
 app.include_router(health.router)
 app.include_router(urls_router)
 app.include_router(redirects_router)

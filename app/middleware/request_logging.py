@@ -3,6 +3,7 @@ import time
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from app.core.request_context import request_id_context
 
 logger = logging.getLogger("app.requests")
 
@@ -36,6 +37,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                     "path": get_route_template(request),
                     "status_code": 500,
                     "duration_ms": duration_ms,
+                    "request_id": request_id_context.get(),
                 },
             )
             raise
@@ -53,6 +55,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 "path": get_route_template(request),
                 "status_code": response.status_code,
                 "duration_ms": duration_ms,
+                "request_id": request_id_context.get(),
             },
         )
 
