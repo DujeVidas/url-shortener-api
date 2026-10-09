@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     db_max_overflow: int = Field(default=5, ge=0, le=50)
     db_pool_timeout: int = Field(default=10, ge=1, le=120)
     db_pool_recycle: int = Field(default=1800, ge=60, le=86400)
+    db_statement_timeout_ms: int = Field(default=10000, ge=1000, le=300000)
 
 
     model_config = SettingsConfigDict(

@@ -31,6 +31,7 @@ services:
       DB_MAX_OVERFLOW: "5"
       DB_POOL_TIMEOUT: "10"
       DB_POOL_RECYCLE: "1800"
+      DB_STATEMENT_TIMEOUT_MS: "10000"
     depends_on:
       db:
         condition: service_healthy
