@@ -107,3 +107,31 @@ def test_api_has_writable_temporary_filesystem():
     api = config["services"]["api"]
 
     assert "/tmp:rw,nosuid,nodev,size=64m" in api["tmpfs"]
+
+def test_all_services_use_json_file_logging():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    services = config["services"]
+
+    for service_name in ("api", "db", "redis"):
+        logging_config = services[service_name]["logging"]
+
+        assert logging_config["driver"] == "json-file"
+
+
+def test_all_services_have_log_rotation():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    services = config["services"]
+
+    for service_name in ("api", "db", "redis"):
+        options = services[service_name]["logging"]["options"]
+
+        assert options["max-size"] == "10m"
+        assert options["max-file"] == "3"
