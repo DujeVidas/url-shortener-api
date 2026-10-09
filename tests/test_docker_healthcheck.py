@@ -187,3 +187,13 @@ def test_api_configures_database_statement_timeout():
     environment = config["services"]["api"]["environment"]
 
     assert environment["DB_STATEMENT_TIMEOUT_MS"] == "10000"
+
+def test_api_configures_idle_transaction_timeout():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    environment = config["services"]["api"]["environment"]
+
+    assert environment["DB_IDLE_TRANSACTION_TIMEOUT_MS"] == "60000"

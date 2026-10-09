@@ -10,7 +10,8 @@ connect_args = {}
 if settings.database_url.startswith("postgres"):
     connect_args["connect_timeout"] = settings.db_connect_timeout
     connect_args["options"] = (
-        f"-c statement_timeout={settings.db_statement_timeout_ms}"
+        f"-c statement_timeout={settings.db_statement_timeout_ms} "
+        f"-c idle_in_transaction_session_timeout={settings.db_idle_transaction_timeout_ms}"
     )
 
 engine = create_engine(
