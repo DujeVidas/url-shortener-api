@@ -47,3 +47,20 @@ def test_all_services_have_restart_policy():
 
     for service_name in ("api", "db", "redis"):
         assert services[service_name]["restart"] == "unless-stopped"
+
+def test_all_services_have_memory_limits():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    services = config["services"]
+
+    expected_limits = {
+        "api": "512m",
+        "db": "512m",
+        "redis": "256m",
+    }
+
+    for service_name, expected_limit in expected_limits.items():
+        assert services[service_name]["mem_limit"] == expected_limit
