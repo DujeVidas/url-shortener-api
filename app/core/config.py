@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     app_host: str = "127.0.0.1"
     app_port: int = Field(default=8000, ge=1, le=65535)
     db_connect_timeout: int = Field(default=5, ge=1, le=60)
+    db_pool_size: int = Field(default=5, ge=1, le=50)
+    db_max_overflow: int = Field(default=5, ge=0, le=50)
+    db_pool_timeout: int = Field(default=10, ge=1, le=120)
 
     model_config = SettingsConfigDict(
         env_file=".env",

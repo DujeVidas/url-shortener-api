@@ -155,3 +155,15 @@ def test_api_configures_database_connect_timeout():
     api = config["services"]["api"]
 
     assert api["environment"]["DB_CONNECT_TIMEOUT"] == "5"
+
+def test_api_configures_database_pool():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    environment = config["services"]["api"]["environment"]
+
+    assert environment["DB_POOL_SIZE"] == "5"
+    assert environment["DB_MAX_OVERFLOW"] == "5"
+    assert environment["DB_POOL_TIMEOUT"] == "10"
