@@ -45,3 +45,23 @@ def health_check(db: DbSession) -> JSONResponse:
             "checks": checks,
         },
     )
+
+@router.get("/live")
+def liveness_check() -> dict[str, str]:
+    return {"status": "alive"}
+
+
+@router.get("/ready")
+def readiness_check(db: DbSession) -> JSONResponse:
+    try:
+        db.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "not_ready"},
+        )
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"status": "ready"},
+    )
