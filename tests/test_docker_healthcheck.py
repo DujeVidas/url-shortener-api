@@ -36,3 +36,14 @@ def test_api_healthcheck_uses_liveness_endpoint():
 
     assert "/health/live" in command
     assert "/health/ready" not in command
+
+def test_all_services_have_restart_policy():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    services = config["services"]
+
+    for service_name in ("api", "db", "redis"):
+        assert services[service_name]["restart"] == "unless-stopped"
