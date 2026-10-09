@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     db_statement_timeout_ms: int = Field(default=10000, ge=1000, le=300000)
     db_idle_transaction_timeout_ms: int = Field(default=60000, ge=1000, le=600000)
 
+    max_request_body_bytes: int = Field(
+        default=16384,
+        ge=1024,
+        le=1048576
+    )
+
 
     model_config = SettingsConfigDict(
         env_file=".env",

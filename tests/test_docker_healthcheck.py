@@ -197,3 +197,13 @@ def test_api_configures_idle_transaction_timeout():
     environment = config["services"]["api"]["environment"]
 
     assert environment["DB_IDLE_TRANSACTION_TIMEOUT_MS"] == "60000"
+
+def test_api_configures_request_body_limit():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    environment = config["services"]["api"]["environment"]
+
+    assert environment["MAX_REQUEST_BODY_BYTES"] == "16384"
