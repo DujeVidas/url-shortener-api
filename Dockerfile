@@ -8,8 +8,9 @@ WORKDIR /app
 RUN groupadd --system appuser \
     && useradd --system --gid appuser --create-home appuser
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml README.md alembic.ini ./
 COPY app/ ./app/
+COPY alembic/ ./alembic/
 
 RUN pip install --no-cache-dir .
 

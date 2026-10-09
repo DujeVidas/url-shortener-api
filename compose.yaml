@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: .
+    image: url-shortener-api:dev
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      APP_HOST: "0.0.0.0"
+      APP_PORT: "8000"
+      DATABASE_URL: "postgresql+psycopg://url_shortener:dev_password@db:5432/url_shortener"
+      REDIS_URL: "redis://redis:6379/0"
+      BASE_URL: "http://localhost:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: url_shortener
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: url_shortener
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U url_shortener -d url_shortener
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres_data:
