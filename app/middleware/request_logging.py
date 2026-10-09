@@ -7,6 +7,15 @@ from starlette.middleware.base import BaseHTTPMiddleware
 logger = logging.getLogger("app.requests")
 
 
+def get_route_template(request: Request) -> str:
+    route = request.scope.get("route")
+
+    if route is None:
+        return "<unmatched>"
+
+    return getattr(route, "path", "<unmatched>")
+
+
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.perf_counter()
@@ -24,7 +33,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 extra={
                     "event": "http_request",
                     "method": request.method,
-                    "path": request.url.path,
+                    "path": get_route_template(request),
                     "status_code": 500,
                     "duration_ms": duration_ms,
                 },
@@ -41,7 +50,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             extra={
                 "event": "http_request",
                 "method": request.method,
-                "path": request.url.path,
+                "path": get_route_template(request),
                 "status_code": response.status_code,
                 "duration_ms": duration_ms,
             },
