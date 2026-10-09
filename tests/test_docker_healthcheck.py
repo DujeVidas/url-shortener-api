@@ -167,3 +167,13 @@ def test_api_configures_database_pool():
     assert environment["DB_POOL_SIZE"] == "5"
     assert environment["DB_MAX_OVERFLOW"] == "5"
     assert environment["DB_POOL_TIMEOUT"] == "10"
+
+def test_api_configures_database_pool_recycling():
+    compose_file = PROJECT_ROOT / "compose.yaml"
+
+    with compose_file.open() as file:
+        config = yaml.safe_load(file)
+
+    environment = config["services"]["api"]["environment"]
+
+    assert environment["DB_POOL_RECYCLE"] == "1800"
