@@ -11,6 +11,7 @@ RUN groupadd --system appuser \
 COPY pyproject.toml README.md alembic.ini ./
 COPY app/ ./app/
 COPY alembic/ ./alembic/
+COPY scripts/start.sh ./scripts/start.sh
 
 RUN pip install --no-cache-dir .
 
@@ -18,4 +19,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["python", "-m", "app.run"]
+CMD ["sh", "scripts/start.sh"]
