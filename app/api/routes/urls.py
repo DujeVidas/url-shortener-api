@@ -36,6 +36,65 @@ DbSession = Annotated[Session, Depends(get_db)]
     dependencies=[Depends(enforce_create_rate_limit)],
     response_model=URLResponse,
     status_code=status.HTTP_201_CREATED,
+    responses={
+        201: {
+            "description": "Short URL created successfully",
+            "headers": {
+                "RateLimit-Limit": {
+                    "description": "Maximum requests allowed per window",
+                    "schema": {"type": "integer"},
+                },
+                "RateLimit-Remaining": {
+                    "description": "Requests remaining in the current window",
+                    "schema": {"type": "integer"},
+                },
+                "RateLimit-Reset": {
+                    "description": "Seconds until the rate-limit window resets",
+                    "schema": {"type": "integer"},
+                },
+            },
+        },
+        429: {
+            "description": "URL creation rate limit exceeded",
+            "headers": {
+                "Retry-After": {
+                    "description": "Seconds to wait before retrying",
+                    "schema": {"type": "integer"},
+                },
+                "RateLimit-Remaining": {
+                    "description": "Requests remaining (zero)",
+                    "schema": {"type": "integer"},
+                },
+                "RateLimit-Reset": {
+                    "description": "Seconds until the current window resets",
+                    "schema": {"type": "integer"},
+                },
+            },
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Rate limit exceeded",
+                    }
+                }
+            },
+        },
+        503: {
+            "description": "Rate limiting temporarily unavailable",
+            "headers": {
+                "Retry-After": {
+                    "description": "Seconds to wait before retrying",
+                    "schema": {"type": "integer"},
+                },
+            },
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "URL creation temporarily unavailable",
+                    }
+                }
+            },
+        },
+    },
 )
 def create_url(
     payload: URLCreate,
