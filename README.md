@@ -322,3 +322,30 @@ For normal Docker Compose startup, no manual migration command is necessary.
 GitHub Actions automatically runs Ruff linting, formatting checks, and pytest with branch coverage on pushes and pull requests.
 
 The workflow is defined in `.github/workflows/ci.yml`.
+
+### Development Shortcuts
+
+A Makefile provides shortcuts for common development tasks.
+
+```bash
+make help
+```
+
+Run all code-quality checks and tests:
+
+```bash
+make check
+```
+
+Other useful commands:
+
+| Command | Description |
+|---|---|
+| `make install` | Install development dependencies |
+| `make lint` | Run Ruff linting |
+| `make format` | Format Python code |
+| `make format-check` | Check formatting |
+| `make test` | Run pytest |
+| `make coverage` | Run tests with branch coverage |
+
+The `make check` command runs linting, formatting verification, and tests with the project's minimum 90% coverage requirement.
