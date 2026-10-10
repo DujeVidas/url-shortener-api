@@ -25,3 +25,8 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["app*"]
 exclude = ["alembic*"]
+
+[tool.pytest.ini_options]
+markers = [
+    "redis_integration: tests requiring a running Redis server",
+]
