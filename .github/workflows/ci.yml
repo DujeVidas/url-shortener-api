@@ -73,3 +73,39 @@ jobs:
 
       - name: Build Docker image
         run: docker build --tag url-shortener-api:ci .
+      
+      - name: Create Compose environment
+        run: |
+          cp .env.compose.example .env.compose
+
+      - name: Start application stack
+        run: |
+          docker compose --env-file .env.compose up --build -d
+
+      - name: Verify API liveness and readiness
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8000/health/live \
+              && curl --fail --silent http://127.0.0.1:8000/health/ready; then
+              echo
+              echo "API liveness and readiness checks passed"
+              exit 0
+            fi
+
+            echo "Waiting for API (attempt $attempt/30)..."
+            sleep 2
+          done
+
+          echo "API did not become ready"
+          docker compose --env-file .env.compose ps
+          docker compose --env-file .env.compose logs --no-color
+          exit 1
+
+      - name: Show Compose logs on failure
+        if: failure()
+        run: docker compose --env-file .env.compose logs --no-color
+
+      - name: Stop application stack
+        if: always()
+        run: docker compose --env-file .env.compose down
+
