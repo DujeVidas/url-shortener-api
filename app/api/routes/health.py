@@ -52,7 +52,33 @@ def liveness_check() -> dict[str, str]:
     return {"status": "alive"}
 
 
-@router.get("/ready")
+@router.get(
+    "/ready",
+    summary="Check application readiness",
+    description=(
+        "Checks PostgreSQL and Redis connectivity. "
+        "Returns HTTP 200 when both dependencies are available, "
+        "or HTTP 503 when either dependency is unavailable."
+    ),
+    responses={
+        200: {
+            "description": "Application is ready",
+            "content": {
+                "application/json": {
+                    "example": {"status": "ready"}
+                }
+            },
+        },
+        503: {
+            "description": "One or more dependencies are unavailable",
+            "content": {
+                "application/json": {
+                    "example": {"status": "not_ready"}
+                }
+            },
+        },
+    },
+)
 def readiness_check(db: DbSession) -> JSONResponse:
     try:
         db.execute(text("SELECT 1"))
