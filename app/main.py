@@ -12,6 +12,7 @@ from app.middleware.request_logging import RequestLoggingMiddleware
 from app.middleware.request_size import RequestSizeLimitMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.middleware.server_timing import ServerTimingMiddleware
 
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -45,6 +46,7 @@ app.add_middleware(
     max_body_bytes=get_settings().max_request_body_bytes
 )
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(ServerTimingMiddleware)
 app.add_middleware(RequestIDMiddleware)
 
 
