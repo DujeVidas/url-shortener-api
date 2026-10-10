@@ -14,3 +14,22 @@ htmlcov/
 .vscode/
 tests/
 *.egg-info/
+
+# GitHub Actions
+.github/
+
+# Additional development caches
+.ruff_cache/
+.mypy_cache/
+
+# Additional coverage artifacts
+.coverage.*
+coverage.xml
+
+# Local development tools
+Makefile
+
+# Operating system and editor files
+.idea/
+.DS_Store
+Thumbs.db
