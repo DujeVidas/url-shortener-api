@@ -4,6 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.api.dependencies.rate_limit import enforce_create_rate_limit
 from app.db.base import Base
 from app.db.dependencies import get_db
 from app.db.models import URL, ClickEvent
@@ -33,6 +34,9 @@ def client_and_db():
 
     app.dependency_overrides[get_db] = override_get_db
 
+    # Skip rate limiting in existing endpoint tests.
+    app.dependency_overrides[enforce_create_rate_limit] = lambda: None
+
     try:
         with TestClient(app) as test_client:
             with TestingSessionLocal() as db:
@@ -47,3 +51,19 @@ def client_and_db():
 def client(client_and_db):
     test_client, _ = client_and_db
     return test_client
+
+
+@pytest.fixture
+def rate_limited_client(client):
+    # Temporarily enable the real rate-limit dependency.
+    previous = app.dependency_overrides.pop(
+        enforce_create_rate_limit,
+        None,
+    )
+
+    try:
+        yield client
+    finally:
+        # Restore the override so other tests remain isolated.
+        if previous is not None:
+            app.dependency_overrides[enforce_create_rate_limit] = previous

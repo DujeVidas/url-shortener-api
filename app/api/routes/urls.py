@@ -18,6 +18,7 @@ from app.services.url_service import (
 from app.schemas.analytics import URLAnalyticsResponse
 from app.services.analytics_service import get_url_analytics
 from app.services.cache_service import delete_cached_url
+from app.api.dependencies.rate_limit import enforce_create_rate_limit
 
 
 settings = get_settings()
@@ -32,6 +33,7 @@ DbSession = Annotated[Session, Depends(get_db)]
 
 @router.post(
     "",
+    dependencies=[Depends(enforce_create_rate_limit)],
     response_model=URLResponse,
     status_code=status.HTTP_201_CREATED,
 )

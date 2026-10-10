@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     db_statement_timeout_ms: int = Field(default=10000, ge=1000, le=300000)
     db_idle_transaction_timeout_ms: int = Field(default=60000, ge=1000, le=600000)
 
+    rate_limit_create_requests: int = Field(default=10, ge=1, le=10000)
+    rate_limit_create_window_seconds: int = Field(default=60, ge=1, le=3600)
+
     max_request_body_bytes: int = Field(
         default=16384,
         ge=1024,

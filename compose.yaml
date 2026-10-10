@@ -35,6 +35,8 @@ services:
       DB_STATEMENT_TIMEOUT_MS: "10000"
       DB_IDLE_TRANSACTION_TIMEOUT_MS: "60000"
       MAX_REQUEST_BODY_BYTES: "16384"
+      RATE_LIMIT_CREATE_REQUESTS: "10"
+      RATE_LIMIT_CREATE_WINDOW_SECONDS: "60"
     depends_on:
       db:
         condition: service_healthy
