@@ -1,6 +1,6 @@
 from starlette.datastructures import Headers
-from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
 from app.core.error_responses import error_response
 
 

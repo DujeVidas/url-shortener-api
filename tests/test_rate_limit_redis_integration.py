@@ -13,7 +13,6 @@ from app.core.rate_limit import (
     check_create_rate_limit,
 )
 
-
 pytestmark = pytest.mark.redis_integration
 
 

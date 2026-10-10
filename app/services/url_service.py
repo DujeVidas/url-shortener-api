@@ -2,11 +2,10 @@ import secrets
 import string
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models import URL
-
-from sqlalchemy.exc import IntegrityError
 
 SHORT_CODE_LENGTH = 6
 

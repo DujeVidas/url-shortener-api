@@ -1,5 +1,5 @@
 import hashlib
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from tests.test_rate_limit_redis_integration import isolated_ip
 

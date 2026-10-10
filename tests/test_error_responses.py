@@ -1,8 +1,8 @@
 from uuid import UUID
 
 from fastapi import FastAPI, HTTPException
-from fastapi.testclient import TestClient
 from fastapi.exceptions import RequestValidationError
+from fastapi.testclient import TestClient
 from pydantic import BaseModel
 from starlette.exceptions import HTTPException as StarletteHTTPException
 

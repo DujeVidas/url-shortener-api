@@ -1,6 +1,5 @@
 import re
 
-
 TIMING_PATTERN = re.compile(r"^app;dur=\d+\.\d{2}$")
 
 

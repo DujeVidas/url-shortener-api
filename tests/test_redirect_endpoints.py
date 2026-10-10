@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.schemas.cache import CachedURL
 
+
 def test_redirect_cache_miss(client: TestClient):
     create_response = client.post(
         "/api/v1/urls",

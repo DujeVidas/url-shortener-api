@@ -1,6 +1,5 @@
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-
 DEFAULT_CSP = (
     b"default-src 'none'; frame-ancestors 'none'"
 )

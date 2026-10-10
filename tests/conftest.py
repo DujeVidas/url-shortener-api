@@ -7,7 +7,6 @@ from sqlalchemy.pool import StaticPool
 from app.api.dependencies.rate_limit import enforce_create_rate_limit
 from app.db.base import Base
 from app.db.dependencies import get_db
-from app.db.models import URL, ClickEvent
 from app.main import app
 
 

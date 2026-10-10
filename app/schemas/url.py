@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from pydantic import AnyHttpUrl, BaseModel, ConfigDict, Field, field_validator
 
-
 RESERVED_ALIASES = {
     "api",
     "docs",

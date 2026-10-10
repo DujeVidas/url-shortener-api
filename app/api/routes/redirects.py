@@ -1,17 +1,15 @@
+from datetime import datetime, timezone
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
 from app.db.models import URL
-
-from app.services.cache_service import cache_url, get_cached_url
 from app.services.analytics_service import record_click
-
-from datetime import datetime, timezone
+from app.services.cache_service import cache_url, get_cached_url
 
 router = APIRouter()
 

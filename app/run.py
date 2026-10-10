@@ -1,5 +1,7 @@
 import uvicorn
+
 from app.core.config import get_settings
+
 
 def main() -> None:
     settings = get_settings()

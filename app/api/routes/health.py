@@ -8,8 +8,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.redis import redis_client
-from app.db.dependencies import get_db
 from app.core.redis_health import check_redis_health
+from app.db.dependencies import get_db
 
 router = APIRouter(prefix="/health", tags=["health"])
 

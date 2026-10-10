@@ -1,7 +1,7 @@
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func
 
-from app.db.models import ClickEvent, URL
+from app.db.models import URL, ClickEvent
 from app.schemas.analytics import URLAnalyticsResponse
 
 

@@ -1,13 +1,12 @@
 from unittest.mock import patch
 
-from fastapi.testclient import TestClient
-from sqlalchemy.exc import IntegrityError
-
-from app.services.url_service import generate_short_code
 import pytest
+from fastapi.testclient import TestClient
+
 from app.services.url_service import (
     MAX_CODE_GENERATION_ATTEMPTS,
     ShortCodeGenerationError,
+    generate_short_code,
     generate_unique_short_code,
 )
 

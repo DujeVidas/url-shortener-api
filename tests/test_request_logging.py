@@ -1,10 +1,10 @@
 import json
 import logging
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
 from app.core.logging import JSONFormatter
-from unittest.mock import patch
 
 
 def test_json_formatter_produces_valid_json():

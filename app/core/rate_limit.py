@@ -6,7 +6,6 @@ import redis
 
 from app.core.config import get_settings
 
-
 RATE_LIMIT_SCRIPT = """
 local count = redis.call('INCR', KEYS[1])
 

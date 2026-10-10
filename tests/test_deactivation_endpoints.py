@@ -1,10 +1,11 @@
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-
 from sqlalchemy import select
+
 from app.db.models import URL
 from app.schemas.cache import CachedURL
+
 
 def test_deactivate_url_returns_204(client: TestClient):
     create_response = client.post(

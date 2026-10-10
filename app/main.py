@@ -1,27 +1,23 @@
 from fastapi import FastAPI
-
-from app.api.routes.urls import router as urls_router
-from app.core.config import get_settings
-from app.api.routes.redirects import router as redirects_router
-from app.api.routes import health
-from app.api.version import router as version_router
-
-from app.core.logging import configure_logging
-
-from app.middleware.request_logging import RequestLoggingMiddleware
-from app.middleware.request_size import RequestSizeLimitMiddleware
-from app.middleware.request_id import RequestIDMiddleware
-from app.middleware.security_headers import SecurityHeadersMiddleware
-from app.middleware.server_timing import ServerTimingMiddleware
-
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api.routes import health
+from app.api.routes.redirects import router as redirects_router
+from app.api.routes.urls import router as urls_router
+from app.api.version import router as version_router
+from app.core.config import get_settings
 from app.core.exception_handlers import (
     http_exception_handler,
-    validation_exception_handler,
     unhandled_exception_handler,
+    validation_exception_handler,
 )
+from app.core.logging import configure_logging
+from app.middleware.request_id import RequestIDMiddleware
+from app.middleware.request_logging import RequestLoggingMiddleware
+from app.middleware.request_size import RequestSizeLimitMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
+from app.middleware.server_timing import ServerTimingMiddleware
 
 settings = get_settings()
 

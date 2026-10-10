@@ -6,7 +6,6 @@ from fastapi.testclient import TestClient
 
 from app.middleware.server_timing import ServerTimingMiddleware
 
-
 TIMING_PATTERN = re.compile(r"^app;dur=\d+\.\d{2}$")
 
 

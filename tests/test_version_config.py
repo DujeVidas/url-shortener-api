@@ -3,7 +3,6 @@ from pydantic import ValidationError
 
 from app.core.config import Settings
 
-
 DATABASE_URL = "postgresql+psycopg://user:password@localhost:5432/testdb"
 
 

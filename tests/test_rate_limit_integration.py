@@ -1,8 +1,9 @@
 from unittest.mock import patch
 
-from app.core.rate_limit import RateLimitExceeded, RateLimitInfo
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
+
+from app.core.rate_limit import RateLimitExceeded, RateLimitInfo
 
 
 def test_create_url_checks_rate_limit(rate_limited_client):

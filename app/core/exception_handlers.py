@@ -1,11 +1,11 @@
 import logging
 
-from fastapi import HTTPException, Request
+from fastapi import Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.error_responses import error_response
-from fastapi.encoders import jsonable_encoder
 from app.core.request_context import request_id_context
 from app.middleware.security_headers import SECURITY_HEADERS
 
