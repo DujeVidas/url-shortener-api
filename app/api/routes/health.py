@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.redis import redis_client
 from app.db.dependencies import get_db
+from app.core.redis_health import check_redis_health
 
 router = APIRouter(prefix="/health", tags=["health"])
 
@@ -56,6 +57,16 @@ def readiness_check(db: DbSession) -> JSONResponse:
     try:
         db.execute(text("SELECT 1"))
     except SQLAlchemyError:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "not_ready"},
+        )
+    try:
+        redis_ready = check_redis_health()
+    except RedisError:
+        redis_ready = False
+
+    if not redis_ready:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "not_ready"},
