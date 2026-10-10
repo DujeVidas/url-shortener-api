@@ -1,4 +1,4 @@
-.PHONY: help install lint format format-check test coverage check
+.PHONY: help install lint format format-check test coverage check ci
 
 PYTHON ?= python
 
@@ -11,6 +11,7 @@ help:
 	@echo "  make test           Run the test suite"
 	@echo "  make coverage       Run tests with branch coverage"
 	@echo "  make check          Run lint, format-check, and coverage"
+	@echo "  make ci            Run CI-equivalent quality checks"
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -31,3 +32,5 @@ coverage:
 	$(PYTHON) -m pytest -v --cov=app --cov-branch --cov-report=term-missing
 
 check: lint format-check coverage
+
+ci: check

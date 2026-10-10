@@ -350,6 +350,15 @@ Other useful commands:
 
 The `make check` command runs linting, formatting verification, and tests with the project's minimum 90% coverage requirement.
 
+The `make ci` command runs the same linting, formatting, and coverage checks used by the project's GitHub Actions workflow:
+
+```bash
+make ci
+```
+
+Run it before pushing changes to catch quality issues locally.
+
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
