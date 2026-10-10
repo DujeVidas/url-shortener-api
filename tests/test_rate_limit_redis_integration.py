@@ -40,9 +40,21 @@ def redis_client():
 
 
 @pytest.fixture
-def isolated_ip():
+def isolated_ip(redis_client):
     # Each test gets a unique identity to avoid sharing counters.
-    return f"test-{uuid.uuid4().hex}"
+    ip = f"test-{uuid.uuid4().hex}"
+
+    yield ip
+
+    # Remove only keys created for this test identity.
+    client_hash = hashlib.sha256(
+        ip.encode("utf-8")
+    ).hexdigest()
+
+    pattern = f"rate_limit:create:{client_hash}:*"
+
+    for key in redis_client.scan_iter(match=pattern):
+        redis_client.delete(key)
 
 
 def rate_limit_key(ip: str, now: int, window: int) -> str:
