@@ -26,9 +26,7 @@ def test_server_timing_header_present():
     response = client.get("/test")
 
     assert response.status_code == 200
-    assert TIMING_PATTERN.fullmatch(
-        response.headers["server-timing"]
-    )
+    assert TIMING_PATTERN.fullmatch(response.headers["server-timing"])
 
 
 def test_server_timing_is_non_negative():
@@ -48,9 +46,7 @@ def test_server_timing_on_404():
     response = client.get("/missing")
 
     assert response.status_code == 404
-    assert TIMING_PATTERN.fullmatch(
-        response.headers["server-timing"]
-    )
+    assert TIMING_PATTERN.fullmatch(response.headers["server-timing"])
 
 
 def test_server_timing_overrides_existing_value():
@@ -68,7 +64,5 @@ def test_server_timing_overrides_existing_value():
 
     response = client.get("/test")
 
-    assert TIMING_PATTERN.fullmatch(
-        response.headers["server-timing"]
-    )
+    assert TIMING_PATTERN.fullmatch(response.headers["server-timing"])
     assert "incorrect" not in response.headers["server-timing"]

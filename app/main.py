@@ -38,8 +38,7 @@ app.add_exception_handler(
 
 app.add_middleware(RequestLoggingMiddleware)
 app.add_middleware(
-    RequestSizeLimitMiddleware,
-    max_body_bytes=get_settings().max_request_body_bytes
+    RequestSizeLimitMiddleware, max_body_bytes=get_settings().max_request_body_bytes
 )
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(ServerTimingMiddleware)

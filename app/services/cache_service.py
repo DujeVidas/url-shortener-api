@@ -42,7 +42,9 @@ def get_cached_url(short_code: str) -> CachedURL | None:
         return None
 
 
-def cache_url(short_code: str, url_id: int, original_url: str, expires_at: datetime | None) -> None:
+def cache_url(
+    short_code: str, url_id: int, original_url: str, expires_at: datetime | None
+) -> None:
 
     cached_value = json.dumps(
         {

@@ -11,14 +11,9 @@ def test_readiness_openapi_documents_success(client):
 
     assert "200" in operation["responses"]
 
-    assert (
-        operation["responses"]["200"]["description"]
-        == "Application is ready"
-    )
+    assert operation["responses"]["200"]["description"] == "Application is ready"
 
-    example = operation["responses"]["200"][
-        "content"
-    ]["application/json"]["example"]
+    example = operation["responses"]["200"]["content"]["application/json"]["example"]
 
     assert example == {"status": "ready"}
 
@@ -36,13 +31,9 @@ def test_readiness_openapi_documents_unavailable(client):
 
     unavailable = operation["responses"]["503"]
 
-    assert unavailable["description"] == (
-        "One or more dependencies are unavailable"
-    )
+    assert unavailable["description"] == ("One or more dependencies are unavailable")
 
-    example = unavailable["content"][
-        "application/json"
-    ]["example"]
+    example = unavailable["content"]["application/json"]["example"]
 
     assert example == {"status": "not_ready"}
 
@@ -50,9 +41,7 @@ def test_readiness_openapi_documents_unavailable(client):
 def test_readiness_openapi_explains_dependencies(client):
     response = client.get("/openapi.json")
 
-    operation = response.json()["paths"][
-        "/health/ready"
-    ]["get"]
+    operation = response.json()["paths"]["/health/ready"]["get"]
 
     description = operation["description"]
 

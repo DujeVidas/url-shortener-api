@@ -37,15 +37,14 @@ def health_check(db: DbSession) -> JSONResponse:
 
     return JSONResponse(
         status_code=(
-            status.HTTP_200_OK
-            if healthy
-            else status.HTTP_503_SERVICE_UNAVAILABLE
+            status.HTTP_200_OK if healthy else status.HTTP_503_SERVICE_UNAVAILABLE
         ),
         content={
             "status": "healthy" if healthy else "unhealthy",
             "checks": checks,
         },
     )
+
 
 @router.get("/live")
 def liveness_check() -> dict[str, str]:
@@ -63,19 +62,11 @@ def liveness_check() -> dict[str, str]:
     responses={
         200: {
             "description": "Application is ready",
-            "content": {
-                "application/json": {
-                    "example": {"status": "ready"}
-                }
-            },
+            "content": {"application/json": {"example": {"status": "ready"}}},
         },
         503: {
             "description": "One or more dependencies are unavailable",
-            "content": {
-                "application/json": {
-                    "example": {"status": "not_ready"}
-                }
-            },
+            "content": {"application/json": {"example": {"status": "not_ready"}}},
         },
     },
 )

@@ -16,9 +16,7 @@ def error_response(
         content={
             "detail": detail,
             "request_id": (
-                request_id
-                if request_id is not None
-                else request_id_context.get()
+                request_id if request_id is not None else request_id_context.get()
             ),
         },
         headers=headers,

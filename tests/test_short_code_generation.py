@@ -95,9 +95,7 @@ def test_exhausted_generation_attempts_returns_503(client: TestClient):
         )
 
     assert response.status_code == 503
-    assert response.json()["detail"] == (
-        "Could not generate a unique short code"
-    )
+    assert response.json()["detail"] == ("Could not generate a unique short code")
 
 
 def test_duplicate_custom_alias_returns_409(client: TestClient):
@@ -111,6 +109,7 @@ def test_duplicate_custom_alias_returns_409(client: TestClient):
 
     assert first_response.status_code == 201
     assert second_response.status_code == 409
+
 
 def test_generation_stops_after_max_attempts():
     with (
@@ -133,9 +132,7 @@ def test_generation_stops_after_max_attempts():
 def test_exhausted_candidate_generation_returns_503(client: TestClient):
     with patch(
         "app.api.routes.urls.generate_unique_short_code",
-        side_effect=ShortCodeGenerationError(
-            "Could not generate a unique short code"
-        ),
+        side_effect=ShortCodeGenerationError("Could not generate a unique short code"),
     ):
         response = client.post(
             "/api/v1/urls",
@@ -143,6 +140,4 @@ def test_exhausted_candidate_generation_returns_503(client: TestClient):
         )
 
     assert response.status_code == 503
-    assert response.json()["detail"] == (
-        "Could not generate a unique short code"
-    )
+    assert response.json()["detail"] == ("Could not generate a unique short code")

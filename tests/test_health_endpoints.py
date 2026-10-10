@@ -65,6 +65,7 @@ def test_health_check_database_unavailable(client: TestClient):
         },
     }
 
+
 def test_liveness_returns_200(client: TestClient):
     response = client.get("/health/live")
 

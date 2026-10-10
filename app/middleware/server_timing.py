@@ -21,9 +21,7 @@ class ServerTimingMiddleware:
 
         async def send_with_timing(message):
             if message["type"] == "http.response.start":
-                duration_ms = (
-                    time.perf_counter() - start_time
-                ) * 1000
+                duration_ms = (time.perf_counter() - start_time) * 1000
 
                 headers = [
                     (name, value)

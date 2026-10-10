@@ -10,6 +10,7 @@ def test_openapi_schema_is_valid(client):
 
     validate(schema)
 
+
 def test_openapi_contains_required_endpoints(client):
     response = client.get("/openapi.json")
 
@@ -29,6 +30,4 @@ def test_openapi_contains_required_endpoints(client):
 
     for path, method in required_operations.items():
         assert path in paths, f"Missing endpoint: {path}"
-        assert method in paths[path], (
-            f"Missing {method.upper()} operation for {path}"
-        )
+        assert method in paths[path], f"Missing {method.upper()} operation for {path}"

@@ -46,9 +46,7 @@ def isolated_ip(redis_client):
     yield ip
 
     # Remove only keys created for this test identity.
-    client_hash = hashlib.sha256(
-        ip.encode("utf-8")
-    ).hexdigest()
+    client_hash = hashlib.sha256(ip.encode("utf-8")).hexdigest()
 
     pattern = f"rate_limit:create:{client_hash}:*"
 
@@ -57,9 +55,7 @@ def isolated_ip(redis_client):
 
 
 def rate_limit_key(ip: str, now: int, window: int) -> str:
-    client_hash = hashlib.sha256(
-        ip.encode("utf-8")
-    ).hexdigest()
+    client_hash = hashlib.sha256(ip.encode("utf-8")).hexdigest()
 
     window_id = now // window
 
@@ -170,10 +166,12 @@ def test_real_redis_concurrent_requests_are_atomic(
 
     with patch("app.core.rate_limit.time.time", return_value=now):
         with ThreadPoolExecutor(max_workers=8) as executor:
-            results = list(executor.map(
-                lambda _: attempt(),
-                range(limit + 10),
-            ))
+            results = list(
+                executor.map(
+                    lambda _: attempt(),
+                    range(limit + 10),
+                )
+            )
 
     assert sum(results) == limit
     assert results.count(False) == 10

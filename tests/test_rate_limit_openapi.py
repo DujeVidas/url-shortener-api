@@ -33,13 +33,9 @@ def test_create_url_documents_redis_unavailable(client):
 
     assert "Retry-After" in response["headers"]
 
-    example = response["content"][
-        "application/json"
-    ]["example"]
+    example = response["content"]["application/json"]["example"]
 
-    assert example["detail"] == (
-        "URL creation temporarily unavailable"
-    )
+    assert example["detail"] == ("URL creation temporarily unavailable")
 
 
 def test_rate_limit_headers_have_integer_schemas(client):
@@ -50,8 +46,6 @@ def test_rate_limit_headers_have_integer_schemas(client):
         "RateLimit-Remaining",
         "RateLimit-Reset",
     ):
-        schema = operation["responses"]["201"][
-            "headers"
-        ][header]["schema"]
+        schema = operation["responses"]["201"]["headers"][header]["schema"]
 
         assert schema["type"] == "integer"

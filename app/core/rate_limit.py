@@ -37,9 +37,7 @@ class RateLimitExceeded(Exception):
 def check_create_rate_limit(client_ip: str) -> RateLimitInfo:
     settings = get_settings()
 
-    client_hash = hashlib.sha256(
-        client_ip.encode("utf-8")
-    ).hexdigest()
+    client_hash = hashlib.sha256(client_ip.encode("utf-8")).hexdigest()
 
     window = settings.rate_limit_create_window_seconds
     limit = settings.rate_limit_create_requests
@@ -69,10 +67,7 @@ def check_create_rate_limit(client_ip: str) -> RateLimitInfo:
         remaining = max(0, limit - count)
 
         if count > limit:
-            raise RateLimitExceeded(
-                retry_after=reset,
-                limit=limit
-                )
+            raise RateLimitExceeded(retry_after=reset, limit=limit)
 
         return RateLimitInfo(
             limit=limit,

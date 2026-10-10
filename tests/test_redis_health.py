@@ -37,9 +37,7 @@ def test_redis_health_returns_false_for_failed_ping():
 
 def test_redis_health_closes_connection_on_error():
     client = MagicMock()
-    client.ping.side_effect = RedisConnectionError(
-        "Connection refused"
-    )
+    client.ping.side_effect = RedisConnectionError("Connection refused")
 
     with patch(
         "app.core.redis_health.redis.Redis.from_url",

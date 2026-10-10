@@ -40,6 +40,7 @@ def test_redirect_cache_miss(client: TestClient):
     assert mock_set.call_args.kwargs["short_code"] == "cache-miss-test"
     assert mock_set.call_args.kwargs["original_url"] == "https://example.com/"
 
+
 def test_redirect_cache_hit(client: TestClient):
     create_response = client.post(
         "/api/v1/urls",
@@ -51,11 +52,14 @@ def test_redirect_cache_hit(client: TestClient):
 
     assert create_response.status_code == 201
 
-    with patch(
-        "app.api.routes.redirects.get_cached_url",
-        return_value=None,
-    ), patch(
-        "app.api.routes.redirects.cache_url",
+    with (
+        patch(
+            "app.api.routes.redirects.get_cached_url",
+            return_value=None,
+        ),
+        patch(
+            "app.api.routes.redirects.cache_url",
+        ),
     ):
         first_response = client.get(
             "/cache-hit-test",
@@ -88,6 +92,7 @@ def test_redirect_cache_hit(client: TestClient):
     assert response.headers["location"] == "https://example.com/"
 
     mock_set.assert_not_called()
+
 
 def test_redirect_unknown_code_returns_404(client: TestClient):
     with patch(

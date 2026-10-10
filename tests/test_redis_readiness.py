@@ -58,7 +58,7 @@ def test_readiness_when_postgres_fails(client):
     try:
         with patch(
             "app.api.routes.health.check_redis_health",
-        return_value=True,
+            return_value=True,
         ) as redis_check:
             response = client.get("/health/ready")
     finally:

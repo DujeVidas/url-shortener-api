@@ -10,6 +10,7 @@ def test_health_response_has_request_id(client):
 
     assert str(UUID(request_id)) == request_id
 
+
 def test_oversized_request_body_contains_request_id(client):
     response = client.post(
         "/api/v1/urls",

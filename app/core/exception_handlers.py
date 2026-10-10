@@ -32,6 +32,7 @@ async def validation_exception_handler(
         detail=jsonable_encoder(exc.errors()),
     )
 
+
 async def unhandled_exception_handler(
     request: Request,
     exc: Exception,
@@ -42,8 +43,7 @@ async def unhandled_exception_handler(
         request_id = getattr(request.state, "request_id", None)
 
     headers = {
-        name.decode("ascii"): value.decode("ascii")
-        for name, value in SECURITY_HEADERS
+        name.decode("ascii"): value.decode("ascii") for name, value in SECURITY_HEADERS
     }
 
     if request_id is not None:

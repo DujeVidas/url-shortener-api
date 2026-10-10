@@ -36,6 +36,7 @@ def test_api_healthcheck_uses_liveness_endpoint():
     assert "/health/live" in command
     assert "/health/ready" not in command
 
+
 def test_all_services_have_restart_policy():
     compose_file = PROJECT_ROOT / "compose.yaml"
 
@@ -46,6 +47,7 @@ def test_all_services_have_restart_policy():
 
     for service_name in ("api", "db", "redis"):
         assert services[service_name]["restart"] == "unless-stopped"
+
 
 def test_all_services_have_memory_limits():
     compose_file = PROJECT_ROOT / "compose.yaml"
@@ -63,6 +65,7 @@ def test_all_services_have_memory_limits():
 
     for service_name, expected_limit in expected_limits.items():
         assert services[service_name]["mem_limit"] == expected_limit
+
 
 def test_api_prevents_privilege_escalation():
     compose_file = PROJECT_ROOT / "compose.yaml"
@@ -107,6 +110,7 @@ def test_api_has_writable_temporary_filesystem():
 
     assert "/tmp:rw,nosuid,nodev,size=64m" in api["tmpfs"]
 
+
 def test_all_services_use_json_file_logging():
     compose_file = PROJECT_ROOT / "compose.yaml"
 
@@ -135,6 +139,7 @@ def test_all_services_have_log_rotation():
         assert options["max-size"] == "10m"
         assert options["max-file"] == "3"
 
+
 def test_api_has_graceful_shutdown_period():
     compose_file = PROJECT_ROOT / "compose.yaml"
 
@@ -145,6 +150,7 @@ def test_api_has_graceful_shutdown_period():
 
     assert api["stop_grace_period"] == "30s"
 
+
 def test_api_configures_database_connect_timeout():
     compose_file = PROJECT_ROOT / "compose.yaml"
 
@@ -154,6 +160,7 @@ def test_api_configures_database_connect_timeout():
     api = config["services"]["api"]
 
     assert api["environment"]["DB_CONNECT_TIMEOUT"] == "5"
+
 
 def test_api_configures_database_pool():
     compose_file = PROJECT_ROOT / "compose.yaml"
@@ -167,6 +174,7 @@ def test_api_configures_database_pool():
     assert environment["DB_MAX_OVERFLOW"] == "5"
     assert environment["DB_POOL_TIMEOUT"] == "10"
 
+
 def test_api_configures_database_pool_recycling():
     compose_file = PROJECT_ROOT / "compose.yaml"
 
@@ -176,6 +184,7 @@ def test_api_configures_database_pool_recycling():
     environment = config["services"]["api"]["environment"]
 
     assert environment["DB_POOL_RECYCLE"] == "1800"
+
 
 def test_api_configures_database_statement_timeout():
     compose_file = PROJECT_ROOT / "compose.yaml"
@@ -187,6 +196,7 @@ def test_api_configures_database_statement_timeout():
 
     assert environment["DB_STATEMENT_TIMEOUT_MS"] == "10000"
 
+
 def test_api_configures_idle_transaction_timeout():
     compose_file = PROJECT_ROOT / "compose.yaml"
 
@@ -196,6 +206,7 @@ def test_api_configures_idle_transaction_timeout():
     environment = config["services"]["api"]["environment"]
 
     assert environment["DB_IDLE_TRANSACTION_TIMEOUT_MS"] == "60000"
+
 
 def test_api_configures_request_body_limit():
     compose_file = PROJECT_ROOT / "compose.yaml"

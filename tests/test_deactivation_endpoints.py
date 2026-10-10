@@ -119,6 +119,7 @@ def test_analytics_survive_deactivation(client: TestClient):
     assert analytics_response.status_code == 200
     assert analytics_response.json()["total_clicks"] == 1
 
+
 def test_stale_cache_cannot_redirect_deactivated_url(client_and_db):
     client, db = client_and_db
 
@@ -132,9 +133,7 @@ def test_stale_cache_cannot_redirect_deactivated_url(client_and_db):
 
     assert create_response.status_code == 201
 
-    url = db.scalar(
-        select(URL).where(URL.short_code == "stale-cache-test")
-    )
+    url = db.scalar(select(URL).where(URL.short_code == "stale-cache-test"))
 
     assert url is not None
 
@@ -146,9 +145,7 @@ def test_stale_cache_cannot_redirect_deactivated_url(client_and_db):
 
     # Simulate Redis invalidation failing during deactivation.
     with patch("app.api.routes.urls.delete_cached_url"):
-        delete_response = client.delete(
-            "/api/v1/urls/stale-cache-test"
-        )
+        delete_response = client.delete("/api/v1/urls/stale-cache-test")
 
     assert delete_response.status_code == 204
 

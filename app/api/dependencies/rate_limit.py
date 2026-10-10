@@ -15,11 +15,7 @@ def enforce_create_rate_limit(
     request: Request,
     response: Response,
 ) -> None:
-    client_ip = (
-        request.client.host
-        if request.client is not None
-        else "unknown"
-    )
+    client_ip = request.client.host if request.client is not None else "unknown"
 
     try:
         info = check_create_rate_limit(client_ip)

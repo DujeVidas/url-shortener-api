@@ -64,9 +64,7 @@ def test_request_logging_excludes_query_parameters(
     caplog,
 ):
     with caplog.at_level(logging.INFO, logger="app.requests"):
-        response = client.get(
-            "/health/live?token=secret-value"
-        )
+        response = client.get("/health/live?token=secret-value")
 
     assert response.status_code == 200
 
@@ -79,8 +77,6 @@ def test_request_logging_excludes_query_parameters(
     assert len(request_logs) == 1
     assert request_logs[0].path == "/health/live"
     assert "secret-value" not in request_logs[0].getMessage()
-
-
 
 
 def test_redirect_logs_route_template(
@@ -120,9 +116,7 @@ def test_analytics_logs_route_template(
     caplog,
 ):
     with caplog.at_level(logging.INFO, logger="app.requests"):
-        response = client.get(
-            "/api/v1/urls/private-link/analytics"
-        )
+        response = client.get("/api/v1/urls/private-link/analytics")
 
     assert response.status_code == 404
 

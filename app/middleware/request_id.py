@@ -31,9 +31,7 @@ class RequestIDMiddleware:
                     for name, value in message.get("headers", [])
                     if name.lower() != b"x-request-id"
                 ]
-                headers.append(
-                    (b"x-request-id", request_id.encode("ascii"))
-                )
+                headers.append((b"x-request-id", request_id.encode("ascii")))
                 message = {**message, "headers": headers}
 
             await send(message)

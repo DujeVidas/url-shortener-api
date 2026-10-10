@@ -101,9 +101,7 @@ def create_url(
 ) -> URLResponse:
     is_custom_alias = payload.custom_alias is not None
 
-    max_attempts = (
-        1 if is_custom_alias else MAX_CODE_GENERATION_ATTEMPTS
-    )
+    max_attempts = 1 if is_custom_alias else MAX_CODE_GENERATION_ATTEMPTS
 
     for _ in range(max_attempts):
         try:
@@ -157,6 +155,7 @@ def create_url(
         expires_at=url.expires_at,
     )
 
+
 @router.get(
     "/{short_code}/analytics",
     response_model=URLAnalyticsResponse,
@@ -184,9 +183,7 @@ def deactivate_url(
     short_code: str,
     db: DbSession,
 ) -> None:
-    url = db.scalar(
-        select(URL).where(URL.short_code == short_code)
-    )
+    url = db.scalar(select(URL).where(URL.short_code == short_code))
 
     if url is None or not url.is_active:
         raise HTTPException(

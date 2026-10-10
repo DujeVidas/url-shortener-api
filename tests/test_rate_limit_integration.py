@@ -27,6 +27,7 @@ def test_create_url_checks_rate_limit(rate_limited_client):
     assert response.headers["ratelimit-remaining"] == "9"
     assert response.headers["ratelimit-reset"] == "45"
 
+
 def test_create_url_returns_429(rate_limited_client):
     with patch(
         "app.api.dependencies.rate_limit.check_create_rate_limit",
@@ -45,10 +46,8 @@ def test_create_url_returns_429(rate_limited_client):
 
     assert response.headers["retry-after"] == "30"
 
-    assert (
-        response.json()["request_id"]
-        == response.headers["x-request-id"]
-    )
+    assert response.json()["request_id"] == response.headers["x-request-id"]
+
 
 def test_create_url_returns_503_when_redis_unavailable(
     rate_limited_client,
@@ -63,10 +62,7 @@ def test_create_url_returns_503_when_redis_unavailable(
         )
 
     assert response.status_code == 503
-    assert (
-        response.json()["detail"]
-        == "URL creation temporarily unavailable"
-    )
+    assert response.json()["detail"] == "URL creation temporarily unavailable"
     assert response.headers["retry-after"] == "5"
 
 
@@ -97,10 +93,7 @@ def test_redis_error_response_has_request_id(
         )
 
     assert response.status_code == 503
-    assert (
-        response.json()["request_id"]
-        == response.headers["x-request-id"]
-    )
+    assert response.json()["request_id"] == response.headers["x-request-id"]
 
 
 def test_redis_error_response_has_security_headers(
@@ -137,7 +130,6 @@ def test_redis_failure_does_not_expose_internal_details(
     assert response.status_code == 503
     assert "internal-host" not in response.text
     assert "connection refused" not in response.text.lower()
-
 
 
 def test_429_contains_rate_limit_headers(rate_limited_client):

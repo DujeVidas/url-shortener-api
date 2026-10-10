@@ -13,8 +13,10 @@ SHORT_CODE_ALPHABET = string.ascii_letters + string.digits
 
 MAX_CODE_GENERATION_ATTEMPTS = 5
 
+
 class ShortCodeGenerationError(Exception):
     """Raised when no available short code is found."""
+
 
 SHORT_CODE_UNIQUE_CONSTRAINT = "ix_urls_short_code"
 
@@ -36,16 +38,11 @@ def is_short_code_collision(error: IntegrityError) -> bool:
 
     # SQLite does not expose PostgreSQL-style diagnostics.
     # This fallback is used by our SQLite endpoint tests.
-    return (
-        "UNIQUE constraint failed: urls.short_code"
-        in str(original_error)
-    )
+    return "UNIQUE constraint failed: urls.short_code" in str(original_error)
+
 
 def generate_short_code(length: int = SHORT_CODE_LENGTH) -> str:
-    return "".join(
-        secrets.choice(SHORT_CODE_ALPHABET)
-        for _ in range(length)
-    )
+    return "".join(secrets.choice(SHORT_CODE_ALPHABET) for _ in range(length))
 
 
 def short_code_exists(db: Session, short_code: str) -> bool:
@@ -61,6 +58,4 @@ def generate_unique_short_code(db: Session) -> str:
         if not short_code_exists(db, short_code):
             return short_code
 
-    raise ShortCodeGenerationError(
-        "Could not generate a unique short code"
-    )
+    raise ShortCodeGenerationError("Could not generate a unique short code")

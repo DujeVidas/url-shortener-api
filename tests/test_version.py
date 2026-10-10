@@ -1,6 +1,3 @@
-
-
-
 def test_version_endpoint_returns_metadata(client):
     response = client.get("/api/v1/version")
 

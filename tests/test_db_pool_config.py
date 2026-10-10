@@ -64,6 +64,7 @@ def test_database_pool_rejects_invalid_values(
 
     assert field_name in str(exc_info.value)
 
+
 def test_database_pool_recycle_defaults_to_thirty_minutes(monkeypatch):
     settings = make_settings(monkeypatch)
 

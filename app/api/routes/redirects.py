@@ -15,6 +15,7 @@ router = APIRouter()
 
 DbSession = Annotated[Session, Depends(get_db)]
 
+
 def is_expired(expires_at: datetime | None) -> bool:
     if expires_at is None:
         return False
@@ -22,7 +23,9 @@ def is_expired(expires_at: datetime | None) -> bool:
 
 
 @router.get("/{short_code}", response_class=RedirectResponse)
-def redirect_to_url(short_code: str, request: Request, db: DbSession) -> RedirectResponse:
+def redirect_to_url(
+    short_code: str, request: Request, db: DbSession
+) -> RedirectResponse:
     cached_url = get_cached_url(short_code)
 
     if cached_url is not None:
@@ -77,7 +80,7 @@ def redirect_to_url(short_code: str, request: Request, db: DbSession) -> Redirec
         )
 
     cache_url(
-        short_code=url.short_code, 
+        short_code=url.short_code,
         url_id=url.id,
         original_url=url.original_url,
         expires_at=url.expires_at,

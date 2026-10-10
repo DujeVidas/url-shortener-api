@@ -20,21 +20,17 @@ def record_click(
     db.add(click_event)
     db.commit()
 
-def get_url_analytics(
-    db: Session,
-    short_code: str
-) -> URLAnalyticsResponse | None:
-    url = db.scalar(
-        select(URL).where(URL.short_code == short_code)
-    )
+
+def get_url_analytics(db: Session, short_code: str) -> URLAnalyticsResponse | None:
+    url = db.scalar(select(URL).where(URL.short_code == short_code))
 
     if url is None:
         return None
-    
+
     statement = select(
         func.count(ClickEvent.id),
         func.min(ClickEvent.timestamp),
-        func.max(ClickEvent.timestamp)
+        func.max(ClickEvent.timestamp),
     ).where(ClickEvent.url_id == url.id)
 
     total_clicks, first_clicked_at, last_clicked_at = db.execute(statement).one()
@@ -43,5 +39,5 @@ def get_url_analytics(
         short_code=url.short_code,
         total_clicks=total_clicks,
         first_clicked_at=first_clicked_at,
-        last_clicked_at=last_clicked_at
+        last_clicked_at=last_clicked_at,
     )

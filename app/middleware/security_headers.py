@@ -1,8 +1,6 @@
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-DEFAULT_CSP = (
-    b"default-src 'none'; frame-ancestors 'none'"
-)
+DEFAULT_CSP = b"default-src 'none'; frame-ancestors 'none'"
 
 SWAGGER_CSP = (
     b"default-src 'none'; "
@@ -51,9 +49,7 @@ class SecurityHeadersMiddleware:
 
         async def send_with_security_headers(message):
             if message["type"] == "http.response.start":
-                header_names = {
-                    name for name, _ in security_headers
-                }
+                header_names = {name for name, _ in security_headers}
 
                 headers = [
                     (name, value)

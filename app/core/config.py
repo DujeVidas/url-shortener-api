@@ -29,12 +29,7 @@ class Settings(BaseSettings):
     rate_limit_create_requests: int = Field(default=10, ge=1, le=10000)
     rate_limit_create_window_seconds: int = Field(default=60, ge=1, le=3600)
 
-    max_request_body_bytes: int = Field(
-        default=16384,
-        ge=1024,
-        le=1048576
-    )
-
+    max_request_body_bytes: int = Field(default=16384, ge=1024, le=1048576)
 
     model_config = SettingsConfigDict(
         env_file=".env",

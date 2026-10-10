@@ -10,6 +10,7 @@ RESERVED_ALIASES = {
     "redoc",
 }
 
+
 class URLCreate(BaseModel):
     url: AnyHttpUrl
     custom_alias: str | None = Field(
@@ -25,15 +26,14 @@ class URLCreate(BaseModel):
     def validate_expiration(cls, value: datetime | None) -> datetime | None:
         if value is None:
             return value
-        
+
         if value.tzinfo is None:
             raise ValueError("expires_at must include timezone information")
-        
+
         if value <= datetime.now(timezone.utc):
             raise ValueError("expires_at must be in the future")
 
         return value
-    
 
     @field_validator("custom_alias")
     @classmethod
@@ -45,6 +45,7 @@ class URLCreate(BaseModel):
             raise ValueError("custom alias is reserved")
 
         return value
+
 
 class URLResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
