@@ -19,6 +19,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.core.exception_handlers import (
     http_exception_handler,
     validation_exception_handler,
+    unhandled_exception_handler,
 )
 
 settings = get_settings()
@@ -31,6 +32,11 @@ app = FastAPI(
 )
 
 configure_logging()
+
+app.add_exception_handler(
+    Exception,
+    unhandled_exception_handler,
+)
 
 
 app.add_middleware(RequestLoggingMiddleware)
