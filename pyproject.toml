@@ -35,6 +35,11 @@ markers = [
     "redis_integration: tests requiring a running Redis server",
 ]
 
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+precision = 2
+
 [tool.ruff]
 target-version = "py312"
 line-length = 88
