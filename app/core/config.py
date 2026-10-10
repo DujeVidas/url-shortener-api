@@ -8,6 +8,7 @@ from pydantic import Field
 class Settings(BaseSettings):
     app_name: str = "URL Shortener API"
     app_env: Literal["development", "test", "production"] = "development"
+    app_version: str = Field(default="0.1.0", min_length=1, max_length=50)
     debug: bool = False
 
     database_url: str
