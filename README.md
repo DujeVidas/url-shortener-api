@@ -130,3 +130,84 @@ docker compose --env-file .env.compose down
 This stops and removes the containers and network while preserving named database volumes.
 
 **Warning:** Do not use `docker compose down -v` unless you intentionally want to delete the database volumes and their stored data.
+
+## API Reference
+
+The API provides endpoints for creating shortened URLs, redirecting visitors, viewing analytics, and deactivating links.
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/urls` | Create a shortened URL |
+| `GET` | `/{short_code}` | Redirect to the original URL |
+| `GET` | `/api/v1/urls/{short_code}/analytics` | Retrieve URL analytics |
+| `DELETE` | `/api/v1/urls/{short_code}` | Deactivate a shortened URL |
+| `GET` | `/health/live` | Check whether the application is running |
+| `GET` | `/health/ready` | Check PostgreSQL and Redis readiness |
+| `GET` | `/api/v1/version` | Retrieve application version information |
+
+### Interactive Documentation
+
+FastAPI automatically generates interactive API documentation:
+
+- **Swagger UI:** http://localhost:8000/docs
+- **OpenAPI schema:** http://localhost:8000/openapi.json
+
+Swagger UI allows developers to inspect request schemas, response models, status codes, and rate-limit headers.
+
+### Create a Short URL
+
+Send a POST request with the original URL:
+
+```bash
+curl -i -X POST http://localhost:8000/api/v1/urls \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com"}'
+```
+
+A successful request returns HTTP `201 Created` and a JSON response containing the shortened URL information.
+
+### Redirect to the Original URL
+
+Replace `SHORT_CODE` with a code returned by the creation endpoint:
+
+```bash
+curl -i http://localhost:8000/SHORT_CODE
+```
+
+A successful redirect returns an HTTP redirect response with a `Location` header pointing to the original URL.
+
+### View Analytics
+
+```bash
+curl -i http://localhost:8000/api/v1/urls/SHORT_CODE/analytics
+```
+
+The analytics endpoint provides information about usage of the shortened URL.
+
+### Deactivate a URL
+
+```bash
+curl -i -X DELETE http://localhost:8000/api/v1/urls/SHORT_CODE
+```
+
+A successful deactivation returns HTTP `204 No Content`.
+
+Deactivated URLs remain in the database but are no longer available for normal redirection.
+
+### Rate Limiting
+
+URL creation is protected by Redis-backed rate limiting.
+
+Successful creation responses include:
+
+- `RateLimit-Limit` — maximum requests allowed per window.
+- `RateLimit-Remaining` — requests remaining in the current window.
+- `RateLimit-Reset` — seconds until the window resets.
+
+If the limit is exceeded, the API returns HTTP `429 Too Many Requests` with a `Retry-After` header.
+
+If the rate-limiting service is unavailable, URL creation returns HTTP `503 Service Unavailable`.
+
+The default Docker Compose configuration allows **10 URL creation requests per 60 seconds**.
