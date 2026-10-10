@@ -1,5 +1,6 @@
 import hashlib
 import time
+from dataclasses import dataclass
 
 import redis
 
@@ -17,12 +18,19 @@ return count
 """
 
 
+@dataclass(frozen=True)
+class RateLimitInfo:
+    limit: int
+    remaining: int
+    reset: int
+
+
 class RateLimitExceeded(Exception):
     def __init__(self, retry_after: int):
         self.retry_after = retry_after
 
 
-def check_create_rate_limit(client_ip: str) -> None:
+def check_create_rate_limit(client_ip: str) -> RateLimitInfo:
     settings = get_settings()
 
     client_hash = hashlib.sha256(
@@ -53,11 +61,16 @@ def check_create_rate_limit(client_ip: str) -> None:
             )
         )
 
-        if count > limit:
-            retry_after = window - (now % window)
+        reset = max(1, window - (now % window))
+        remaining = max(0, limit - count)
 
-            raise RateLimitExceeded(
-                retry_after=max(1, retry_after)
-            )
+        if count > limit:
+            raise RateLimitExceeded(retry_after=reset)
+
+        return RateLimitInfo(
+            limit=limit,
+            remaining=remaining,
+            reset=reset,
+        )
     finally:
         client.close()

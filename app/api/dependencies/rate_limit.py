@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 from redis.exceptions import RedisError
 
 from app.core.rate_limit import (
@@ -11,7 +11,10 @@ from app.core.rate_limit import (
 logger = logging.getLogger("app.rate_limit")
 
 
-def enforce_create_rate_limit(request: Request) -> None:
+def enforce_create_rate_limit(
+    request: Request,
+    response: Response,
+) -> None:
     client_ip = (
         request.client.host
         if request.client is not None
@@ -19,7 +22,7 @@ def enforce_create_rate_limit(request: Request) -> None:
     )
 
     try:
-        check_create_rate_limit(client_ip)
+        info = check_create_rate_limit(client_ip)
 
     except RateLimitExceeded as exc:
         raise HTTPException(
@@ -31,9 +34,7 @@ def enforce_create_rate_limit(request: Request) -> None:
         ) from exc
 
     except RedisError:
-        logger.exception(
-            "Redis rate-limit check failed",
-        )
+        logger.exception("Redis rate-limit check failed")
 
         raise HTTPException(
             status_code=503,
@@ -42,3 +43,7 @@ def enforce_create_rate_limit(request: Request) -> None:
                 "Retry-After": "5",
             },
         ) from None
+
+    response.headers["RateLimit-Limit"] = str(info.limit)
+    response.headers["RateLimit-Remaining"] = str(info.remaining)
+    response.headers["RateLimit-Reset"] = str(info.reset)

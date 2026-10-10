@@ -1,24 +1,30 @@
 from unittest.mock import patch
 
-from app.core.rate_limit import RateLimitExceeded
+from app.core.rate_limit import RateLimitExceeded, RateLimitInfo
 from redis.exceptions import ConnectionError as RedisConnectionError
 from redis.exceptions import TimeoutError as RedisTimeoutError
 
 
 def test_create_url_checks_rate_limit(rate_limited_client):
     with patch(
-        "app.api.dependencies.rate_limit.check_create_rate_limit"
+        "app.api.dependencies.rate_limit.check_create_rate_limit",
+        return_value=RateLimitInfo(
+            limit=10,
+            remaining=9,
+            reset=45,
+        ),
     ) as check:
         response = rate_limited_client.post(
             "/api/v1/urls",
-            json={
-                "url": "https://example.com",
-            },
+            json={"url": "https://example.com"},
         )
 
-    assert response.status_code in (200, 201)
+    assert response.status_code in (200, 201), response.json()
     check.assert_called_once()
 
+    assert response.headers["ratelimit-limit"] == "10"
+    assert response.headers["ratelimit-remaining"] == "9"
+    assert response.headers["ratelimit-reset"] == "45"
 
 def test_create_url_returns_429(rate_limited_client):
     with patch(
