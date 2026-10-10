@@ -136,3 +136,43 @@ def test_redis_failure_does_not_expose_internal_details(
     assert response.status_code == 503
     assert "internal-host" not in response.text
     assert "connection refused" not in response.text.lower()
+
+
+
+def test_429_contains_rate_limit_headers(rate_limited_client):
+    with patch(
+        "app.api.dependencies.rate_limit.check_create_rate_limit",
+        side_effect=RateLimitExceeded(
+            retry_after=30,
+            limit=10,
+        ),
+    ):
+        response = rate_limited_client.post(
+            "/api/v1/urls",
+            json={"url": "https://example.com"},
+        )
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "30"
+    assert response.headers["ratelimit-limit"] == "10"
+    assert response.headers["ratelimit-remaining"] == "0"
+    assert response.headers["ratelimit-reset"] == "30"
+
+
+def test_429_without_limit_keeps_existing_behavior(
+    rate_limited_client,
+):
+    with patch(
+        "app.api.dependencies.rate_limit.check_create_rate_limit",
+        side_effect=RateLimitExceeded(retry_after=15),
+    ):
+        response = rate_limited_client.post(
+            "/api/v1/urls",
+            json={"url": "https://example.com"},
+        )
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "15"
+    assert response.headers["ratelimit-remaining"] == "0"
+    assert response.headers["ratelimit-reset"] == "15"
+    assert "ratelimit-limit" not in response.headers

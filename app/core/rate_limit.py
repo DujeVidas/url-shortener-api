@@ -26,8 +26,13 @@ class RateLimitInfo:
 
 
 class RateLimitExceeded(Exception):
-    def __init__(self, retry_after: int):
+    def __init__(
+        self,
+        retry_after: int,
+        limit: int | None = None,
+    ):
         self.retry_after = retry_after
+        self.limit = limit
 
 
 def check_create_rate_limit(client_ip: str) -> RateLimitInfo:
@@ -65,7 +70,10 @@ def check_create_rate_limit(client_ip: str) -> RateLimitInfo:
         remaining = max(0, limit - count)
 
         if count > limit:
-            raise RateLimitExceeded(retry_after=reset)
+            raise RateLimitExceeded(
+                retry_after=reset,
+                limit=limit
+                )
 
         return RateLimitInfo(
             limit=limit,

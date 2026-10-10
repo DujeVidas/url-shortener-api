@@ -25,12 +25,19 @@ def enforce_create_rate_limit(
         info = check_create_rate_limit(client_ip)
 
     except RateLimitExceeded as exc:
+        headers = {
+            "Retry-After": str(exc.retry_after),
+            "RateLimit-Remaining": "0",
+            "RateLimit-Reset": str(exc.retry_after),
+        }
+
+        if exc.limit is not None:
+            headers["RateLimit-Limit"] = str(exc.limit)
+
         raise HTTPException(
             status_code=429,
             detail="Rate limit exceeded",
-            headers={
-                "Retry-After": str(exc.retry_after),
-            },
+            headers=headers,
         ) from exc
 
     except RedisError:
