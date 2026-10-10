@@ -19,6 +19,7 @@ dev = [
     "PyYAML>=6,<7",
     "openapi-spec-validator>=0.7,<1",
     "ruff>=0.9,<1",
+    "pytest-cov>=6,<8"
 ]
 
 [build-system]
