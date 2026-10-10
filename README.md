@@ -211,3 +211,114 @@ If the limit is exceeded, the API returns HTTP `429 Too Many Requests` with a `R
 If the rate-limiting service is unavailable, URL creation returns HTTP `503 Service Unavailable`.
 
 The default Docker Compose configuration allows **10 URL creation requests per 60 seconds**.
+
+## Development
+
+### Requirements
+
+For local Python development, install:
+
+- Python 3.12 or newer
+- Docker and Docker Compose
+- Git
+
+Docker Compose provides PostgreSQL and Redis, while Python runs the development tools locally.
+
+### Create a Virtual Environment
+
+From the project root:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+On Windows PowerShell, activate the environment with:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+### Install Development Dependencies
+
+```bash
+python -m pip install -e ".[dev]"
+```
+
+This installs the application and its development tools, including pytest, Ruff, and coverage reporting.
+
+### Start Supporting Services
+
+Start PostgreSQL and Redis:
+
+```bash
+docker compose --env-file .env.compose up -d db redis
+```
+
+The `.env.compose` file can be created from `.env.compose.example` as described in the Getting Started section.
+
+### Run Tests
+
+```bash
+python -m pytest -v
+```
+
+Some tests require a running Redis instance. Starting the supporting services beforehand allows these integration tests to execute.
+
+### Run Tests with Branch Coverage
+
+```bash
+python -m pytest -v --cov=app --cov-branch --cov-report=term-missing
+```
+
+The project enforces a minimum of **90% combined statement and branch coverage**.
+
+### Lint and Format
+
+Check Python code quality:
+
+```bash
+python -m ruff check app tests
+```
+
+Check formatting without modifying files:
+
+```bash
+python -m ruff format --check app tests
+```
+
+Automatically fix supported linting issues:
+
+```bash
+python -m ruff check app tests --fix
+```
+
+Apply consistent formatting:
+
+```bash
+python -m ruff format app tests
+```
+
+### Database Migrations
+
+The Dockerized API automatically applies migrations on startup.
+
+To inspect the current database revision:
+
+```bash
+docker compose --env-file .env.compose exec api alembic current
+```
+
+To inspect the latest available revision:
+
+```bash
+docker compose --env-file .env.compose exec api alembic heads
+```
+
+For normal Docker Compose startup, no manual migration command is necessary.
+
+### Continuous Integration
+
+GitHub Actions automatically runs Ruff linting, formatting checks, and pytest with branch coverage on pushes and pull requests.
+
+The workflow is defined in `.github/workflows/ci.yml`.
