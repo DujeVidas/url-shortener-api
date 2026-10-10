@@ -349,3 +349,7 @@ Other useful commands:
 | `make coverage` | Run tests with branch coverage |
 
 The `make check` command runs linting, formatting verification, and tests with the project's minimum 90% coverage requirement.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
