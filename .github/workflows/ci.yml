@@ -62,3 +62,14 @@ jobs:
 
       - name: Run tests with branch coverage
         run: python -m pytest -v --cov=app --cov-branch --cov-report=term-missing
+  
+  docker-build:
+    name: Docker build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build --tag url-shortener-api:ci .
