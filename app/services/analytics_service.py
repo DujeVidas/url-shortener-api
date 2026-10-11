@@ -13,8 +13,8 @@ def record_click(
 ) -> None:
     click_event = ClickEvent(
         url_id=url_id,
-        referrer=referrer,
-        user_agent=user_agent,
+        referrer=referrer[:2048] if referrer is not None else None,
+        user_agent=user_agent[:1024] if user_agent is not None else None,
     )
 
     db.add(click_event)

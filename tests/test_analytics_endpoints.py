@@ -66,3 +66,46 @@ def test_analytics_zero_clicks(client: TestClient):
     assert data["total_clicks"] == 0
     assert data["first_clicked_at"] is None
     assert data["last_clicked_at"] is None
+
+
+def test_analytics_accepts_oversized_request_headers(client: TestClient):
+    create_response = client.post(
+        "/api/v1/urls",
+        json={
+            "url": "https://example.com",
+            "custom_alias": "long-headers-test",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    long_referrer = "https://example.com/" + "a" * 3000
+    long_user_agent = "TestAgent/" + "b" * 1500
+
+    with (
+        patch(
+            "app.api.routes.redirects.get_cached_url",
+            return_value=None,
+        ),
+        patch(
+            "app.api.routes.redirects.cache_url",
+        ),
+    ):
+        response = client.get(
+            "/long-headers-test",
+            headers={
+                "Referer": long_referrer,
+                "User-Agent": long_user_agent,
+            },
+            follow_redirects=False,
+        )
+
+    assert response.status_code == 307
+    assert response.headers["location"] == "https://example.com/"
+
+    analytics_response = client.get(
+        "/api/v1/urls/long-headers-test/analytics",
+    )
+
+    assert analytics_response.status_code == 200
+    assert analytics_response.json()["total_clicks"] == 1
