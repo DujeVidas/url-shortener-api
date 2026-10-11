@@ -1,9 +1,11 @@
+import logging
 from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.db.dependencies import get_db
@@ -12,6 +14,31 @@ from app.services.analytics_service import record_click
 from app.services.cache_service import cache_url, get_cached_url
 
 router = APIRouter()
+
+
+logger = logging.getLogger(__name__)
+
+
+def record_click_safely(
+    db: Session,
+    url_id: int,
+    referrer: str | None,
+    user_agent: str | None,
+) -> None:
+    try:
+        record_click(
+            db=db,
+            url_id=url_id,
+            referrer=referrer,
+            user_agent=user_agent,
+        )
+    except SQLAlchemyError:
+        db.rollback()
+        logger.exception(
+            "Failed to record click analytics for URL ID %s",
+            url_id,
+        )
+
 
 DbSession = Annotated[Session, Depends(get_db)]
 
@@ -49,7 +76,7 @@ def redirect_to_url(
                 detail="Short URL has expired",
             )
 
-        record_click(
+        record_click_safely(
             db=db,
             url_id=url.id,
             referrer=request.headers.get("referer"),
@@ -86,7 +113,7 @@ def redirect_to_url(
         expires_at=url.expires_at,
     )
 
-    record_click(
+    record_click_safely(
         db=db,
         url_id=url.id,
         referrer=request.headers.get("referer"),

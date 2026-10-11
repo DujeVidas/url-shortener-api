@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
+import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.schemas.cache import CachedURL
 
@@ -140,3 +142,69 @@ def test_stale_cached_expiration_does_not_block_active_url(
 
     assert response.status_code == 307
     assert response.headers["location"] == "https://example.com/"
+
+
+def test_redirect_survives_analytics_write_failure(client: TestClient):
+    create_response = client.post(
+        "/api/v1/urls",
+        json={
+            "url": "https://example.com",
+            "custom_alias": "analytics-failure-test",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    with (
+        patch(
+            "app.api.routes.redirects.get_cached_url",
+            return_value=None,
+        ),
+        patch(
+            "app.api.routes.redirects.cache_url",
+        ),
+        patch(
+            "app.api.routes.redirects.record_click",
+            side_effect=SQLAlchemyError("Simulated analytics database failure"),
+        ),
+    ):
+        response = client.get(
+            "/analytics-failure-test",
+            follow_redirects=False,
+        )
+
+    assert response.status_code == 307
+    assert response.headers["location"] == "https://example.com/"
+
+
+def test_redirect_does_not_hide_unexpected_analytics_errors(
+    client: TestClient,
+):
+    create_response = client.post(
+        "/api/v1/urls",
+        json={
+            "url": "https://example.com",
+            "custom_alias": "unexpected-analytics-error",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    with (
+        patch(
+            "app.api.routes.redirects.get_cached_url",
+            return_value=None,
+        ),
+        patch(
+            "app.api.routes.redirects.cache_url",
+        ),
+        patch(
+            "app.api.routes.redirects.record_click",
+            side_effect=RuntimeError("Unexpected programming error"),
+        ),
+        pytest.raises(RuntimeError, match="Unexpected programming error"),
+    ):
+        client.get(
+            "/unexpected-analytics-error",
+            follow_redirects=False,
+        )
