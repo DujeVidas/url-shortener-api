@@ -77,6 +77,12 @@ jobs:
       - name: Create Compose environment
         run: |
           cp .env.compose.example .env.compose
+      
+      - name: Validate Docker Compose configuration
+        run: |
+          docker compose --env-file .env.compose config --quiet
+          echo "Docker Compose configuration is valid"
+
 
       - name: Start application stack
         run: |
