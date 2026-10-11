@@ -182,7 +182,57 @@ jobs:
           print("Complete URL lifecycle smoke test passed")
 
           PY
+      
 
+      - name: Verify URL creation rate limiting
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.error
+          import urllib.request
+
+          base_url = "http://127.0.0.1:8000"
+          create_url = f"{base_url}/api/v1/urls"
+
+          def create_short_url():
+              request = urllib.request.Request(
+                  create_url,
+                  data=json.dumps({
+                      "url": "https://example.com/"
+                  }).encode("utf-8"),
+                  headers={"Content-Type": "application/json"},
+                  method="POST",
+              )
+
+              try:
+                  with urllib.request.urlopen(request, timeout=10) as response:
+                      return response.status, response.headers
+              except urllib.error.HTTPError as response:
+                  return response.code, response.headers
+
+          # A previous smoke test may have already used some quota.
+          # Verify the limiter rejects excess requests.
+          statuses = []
+
+          for attempt in range(12):
+              status, headers = create_short_url()
+              statuses.append(status)
+
+              if status == 429:
+                  assert headers.get("Retry-After") is not None
+                  print("Rate limit enforced with Retry-After header")
+                  break
+
+              assert status == 201, (
+                  f"Unexpected status: {status}"
+              )
+          else:
+              raise AssertionError(
+                  f"Expected HTTP 429, got statuses: {statuses}"
+              )
+
+          print("Rate limiting smoke test passed")
+          PY
 
       - name: Stop application stack
         if: always()
