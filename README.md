@@ -11,8 +11,9 @@ The application converts long URLs into short links, redirects visitors to their
 - **URL shortening:** Generate unique short codes for long URLs.
 - **Custom aliases:** Create memorable short links with custom codes.
 - **URL redirection:** Redirect visitors to their original destinations.
-- **Click analytics:** Track usage statistics for shortened URLs.
-- **URL deactivation:** Disable links without deleting their database records.
+- **Protected analytics:** View URL usage statistics using a management token.
+- **Protected URL deactivation:** Disable links using a management token without deleting their database records.
+- **Management-token security:** Generate a unique token per URL and store only its SHA-256 hash.
 - **Redis caching:** Reduce database queries for frequently accessed links.
 - **Rate limiting:** Protect URL creation using Redis-backed request limits.
 - **Health checks:** Separate liveness and readiness endpoints, including database and Redis connectivity.
@@ -166,7 +167,11 @@ curl -i -X POST http://localhost:8000/api/v1/urls \
   -d '{"url":"https://example.com"}'
 ```
 
-A successful request returns HTTP `201 Created` and a JSON response containing the shortened URL information.
+The response also includes a unique `management_token`. Save this token securely when creating the URL because it is required to view analytics and deactivate the link.
+
+The API generates a cryptographically random token and stores only its SHA-256 hash in PostgreSQL. The original token cannot be retrieved from the database.
+
+**Important:** Treat the management token as a secret. Do not include it in public URLs, query parameters, logs, or source control. If the token is lost, it cannot be recovered.
 
 ### Redirect to the Original URL
 
@@ -181,20 +186,36 @@ A successful redirect returns an HTTP redirect response with a `Location` header
 ### View Analytics
 
 ```bash
-curl -i http://localhost:8000/api/v1/urls/SHORT_CODE/analytics
+curl -i \
+  -H "X-Management-Token: YOUR_MANAGEMENT_TOKEN" \
+  http://localhost:8000/api/v1/urls/SHORT_CODE/analytics
 ```
 
-The analytics endpoint provides information about usage of the shortened URL.
+The analytics endpoint returns usage information for the shortened URL.
+
+A valid `X-Management-Token` header is required. Missing or invalid tokens return HTTP `403 Forbidden`. Unknown short codes return HTTP `404 Not Found`.
+
+Historical analytics remain accessible with the correct management token after a URL has been deactivated.
 
 ### Deactivate a URL
 
 ```bash
-curl -i -X DELETE http://localhost:8000/api/v1/urls/SHORT_CODE
+curl -i -X DELETE \
+  -H "X-Management-Token: YOUR_MANAGEMENT_TOKEN" \
+  http://localhost:8000/api/v1/urls/SHORT_CODE
 ```
 
 A successful deactivation returns HTTP `204 No Content`.
 
 Deactivated URLs remain in the database but are no longer available for normal redirection.
+
+Deactivation requires the same management token returned when the URL was created.
+
+Missing or invalid tokens return HTTP `403 Forbidden` without deactivating the URL. Unknown or already-deactivated URLs return HTTP `404 Not Found`.
+
+Public redirects do not require management tokens.
+
+**Legacy URLs:** URLs created before management tokens were introduced have no stored token hash. They can still redirect while active, but protected analytics and deactivation operations are unavailable for those URLs.
 
 ### Rate Limiting
 

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -13,6 +13,10 @@ from app.schemas.analytics import URLAnalyticsResponse
 from app.schemas.url import URLCreate, URLResponse
 from app.services.analytics_service import get_url_analytics
 from app.services.cache_service import delete_cached_url
+from app.services.management_token_service import (
+    generate_management_token,
+    verify_management_token,
+)
 from app.services.url_service import (
     MAX_CODE_GENERATION_ATTEMPTS,
     ShortCodeGenerationError,
@@ -116,10 +120,13 @@ def create_url(
                 detail="Could not generate a unique short code",
             ) from None
 
+        management_token, management_token_hash = generate_management_token()
+
         url = URL(
             short_code=short_code,
             original_url=str(payload.url),
             expires_at=payload.expires_at,
+            management_token_hash=management_token_hash,
         )
 
         db.add(url)
@@ -153,22 +160,52 @@ def create_url(
         original_url=url.original_url,
         created_at=url.created_at,
         expires_at=url.expires_at,
+        management_token=management_token,
     )
 
 
 @router.get(
     "/{short_code}/analytics",
     response_model=URLAnalyticsResponse,
+    responses={
+        403: {
+            "description": "Invalid or missing management token",
+        },
+        404: {
+            "description": "Short URL not found",
+        },
+    },
 )
 def get_analytics(
     short_code: str,
     db: DbSession,
+    management_token: str | None = Header(
+        default=None,
+        alias="X-Management-Token",
+    ),
 ) -> URLAnalyticsResponse:
+    url = db.scalar(select(URL).where(URL.short_code == short_code))
+
+    if url is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Short URL not found",
+        )
+
+    if not verify_management_token(
+        management_token or "",
+        url.management_token_hash,
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid or missing management token",
+        )
+
     analytics = get_url_analytics(db, short_code)
 
     if analytics is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=404,
             detail="Short URL not found",
         )
 
@@ -178,21 +215,40 @@ def get_analytics(
 @router.delete(
     "/{short_code}",
     status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        403: {
+            "description": "Invalid or missing management token",
+        },
+        404: {
+            "description": "Short URL not found or already deactivated",
+        },
+    },
 )
 def deactivate_url(
     short_code: str,
     db: DbSession,
+    management_token: str | None = Header(
+        default=None,
+        alias="X-Management-Token",
+    ),
 ) -> None:
     url = db.scalar(select(URL).where(URL.short_code == short_code))
 
     if url is None or not url.is_active:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=404,
             detail="Short URL not found",
         )
 
+    if not verify_management_token(
+        management_token or "",
+        url.management_token_hash,
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid or missing management token",
+        )
+
     url.is_active = False
-
     db.commit()
-
     delete_cached_url(short_code)

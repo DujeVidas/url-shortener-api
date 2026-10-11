@@ -44,6 +44,11 @@ class URL(Base):
         nullable=False,
     )
 
+    management_token_hash: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+    )
+
     click_events: Mapped[list["ClickEvent"]] = relationship(
         back_populates="url",
         cascade="all, delete-orphan",

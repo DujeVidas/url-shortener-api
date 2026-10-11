@@ -55,3 +55,4 @@ class URLResponse(BaseModel):
     original_url: str
     created_at: datetime
     expires_at: datetime | None
+    management_token: str

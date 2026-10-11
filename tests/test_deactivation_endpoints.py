@@ -17,11 +17,15 @@ def test_deactivate_url_returns_204(client: TestClient):
     )
 
     assert create_response.status_code == 201
+    management_token = create_response.json()["management_token"]
 
     with patch(
         "app.api.routes.urls.delete_cached_url",
     ) as mock_delete_cache:
-        response = client.delete("/api/v1/urls/delete-test")
+        response = client.delete(
+            "/api/v1/urls/delete-test",
+            headers={"X-Management-Token": management_token},
+        )
 
     assert response.status_code == 204
     assert response.content == b""
@@ -38,9 +42,13 @@ def test_deactivated_url_cannot_redirect(client: TestClient):
     )
 
     assert create_response.status_code == 201
+    management_token = create_response.json()["management_token"]
 
     with patch("app.api.routes.urls.delete_cached_url"):
-        delete_response = client.delete("/api/v1/urls/inactive-test")
+        delete_response = client.delete(
+            "/api/v1/urls/inactive-test",
+            headers={"X-Management-Token": management_token},
+        )
 
     assert delete_response.status_code == 204
 
@@ -73,10 +81,17 @@ def test_deactivating_twice_returns_404(client: TestClient):
     )
 
     assert create_response.status_code == 201
+    management_token = create_response.json()["management_token"]
 
     with patch("app.api.routes.urls.delete_cached_url"):
-        first_response = client.delete("/api/v1/urls/delete-twice")
-        second_response = client.delete("/api/v1/urls/delete-twice")
+        first_response = client.delete(
+            "/api/v1/urls/delete-twice",
+            headers={"X-Management-Token": management_token},
+        )
+        second_response = client.delete(
+            "/api/v1/urls/delete-twice",
+            headers={"X-Management-Token": management_token},
+        )
 
     assert first_response.status_code == 204
     assert second_response.status_code == 404
@@ -92,6 +107,7 @@ def test_analytics_survive_deactivation(client: TestClient):
     )
 
     assert create_response.status_code == 201
+    management_token = create_response.json()["management_token"]
 
     with (
         patch(
@@ -108,12 +124,16 @@ def test_analytics_survive_deactivation(client: TestClient):
     assert redirect_response.status_code == 307
 
     with patch("app.api.routes.urls.delete_cached_url"):
-        delete_response = client.delete("/api/v1/urls/history-test")
+        delete_response = client.delete(
+            "/api/v1/urls/history-test",
+            headers={"X-Management-Token": management_token},
+        )
 
     assert delete_response.status_code == 204
 
     analytics_response = client.get(
         "/api/v1/urls/history-test/analytics",
+        headers={"X-Management-Token": management_token},
     )
 
     assert analytics_response.status_code == 200
@@ -132,6 +152,7 @@ def test_stale_cache_cannot_redirect_deactivated_url(client_and_db):
     )
 
     assert create_response.status_code == 201
+    management_token = create_response.json()["management_token"]
 
     url = db.scalar(select(URL).where(URL.short_code == "stale-cache-test"))
 
@@ -145,7 +166,10 @@ def test_stale_cache_cannot_redirect_deactivated_url(client_and_db):
 
     # Simulate Redis invalidation failing during deactivation.
     with patch("app.api.routes.urls.delete_cached_url"):
-        delete_response = client.delete("/api/v1/urls/stale-cache-test")
+        delete_response = client.delete(
+            "/api/v1/urls/stale-cache-test",
+            headers={"X-Management-Token": management_token},
+        )
 
     assert delete_response.status_code == 204
 

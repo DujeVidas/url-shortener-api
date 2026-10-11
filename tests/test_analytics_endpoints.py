@@ -13,6 +13,7 @@ def test_analytics_counts_successful_redirects(client: TestClient):
     )
 
     assert create_response.status_code == 201
+    management_token = create_response.json()["management_token"]
 
     with (
         patch(
@@ -32,6 +33,7 @@ def test_analytics_counts_successful_redirects(client: TestClient):
 
     analytics_response = client.get(
         "/api/v1/urls/analytics-test/analytics",
+        headers={"X-Management-Token": management_token},
     )
 
     assert analytics_response.status_code == 200
@@ -54,9 +56,11 @@ def test_analytics_zero_clicks(client: TestClient):
     )
 
     assert create_response.status_code == 201
+    management_token = create_response.json()["management_token"]
 
     response = client.get(
         "/api/v1/urls/analytics-zero/analytics",
+        headers={"X-Management-Token": management_token},
     )
 
     assert response.status_code == 200
@@ -78,6 +82,7 @@ def test_analytics_accepts_oversized_request_headers(client: TestClient):
     )
 
     assert create_response.status_code == 201
+    management_token = create_response.json()["management_token"]
 
     long_referrer = "https://example.com/" + "a" * 3000
     long_user_agent = "TestAgent/" + "b" * 1500
@@ -105,6 +110,7 @@ def test_analytics_accepts_oversized_request_headers(client: TestClient):
 
     analytics_response = client.get(
         "/api/v1/urls/long-headers-test/analytics",
+        headers={"X-Management-Token": management_token},
     )
 
     assert analytics_response.status_code == 200
