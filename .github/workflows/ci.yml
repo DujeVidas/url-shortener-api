@@ -104,6 +104,52 @@ jobs:
       - name: Show Compose logs on failure
         if: failure()
         run: docker compose --env-file .env.compose logs --no-color
+      
+
+      - name: Verify URL creation and redirect
+        run: |
+          python - <<'PY'
+          import json
+          import urllib.error
+          import urllib.request
+
+          base_url = "http://127.0.0.1:8000"
+          destination = "https://example.com/"
+
+          # Create a shortened URL.
+          request = urllib.request.Request(
+              f"{base_url}/api/v1/urls",
+              data=json.dumps({"url": destination}).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+
+          with urllib.request.urlopen(request, timeout=10) as response:
+              assert response.status == 201, response.status
+              payload = json.load(response)
+
+          print("Created URL response:", payload)
+
+          # Read the short code from the API response.
+          short_code = payload["short_code"]
+
+          # Prevent urllib from following the redirect automatically.
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+
+          opener = urllib.request.build_opener(NoRedirect())
+
+          try:
+              opener.open(f"{base_url}/{short_code}", timeout=10)
+              raise AssertionError("Expected an HTTP redirect")
+          except urllib.error.HTTPError as response:
+              assert response.code == 307, response.code
+              assert response.headers["Location"] == destination
+
+          print("URL creation and redirect smoke test passed")
+          PY
+
 
       - name: Stop application stack
         if: always()
