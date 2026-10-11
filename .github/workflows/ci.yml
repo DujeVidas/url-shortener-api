@@ -106,7 +106,7 @@ jobs:
         run: docker compose --env-file .env.compose logs --no-color
       
 
-      - name: Verify URL creation and redirect
+      - name: Verify URL creation, redirect, and analytics
         run: |
           python - <<'PY'
           import json
@@ -147,7 +147,18 @@ jobs:
               assert response.code == 307, response.code
               assert response.headers["Location"] == destination
 
-          print("URL creation and redirect smoke test passed")
+          # Verify that analytics are accessible after a redirect.
+          analytics_url = f"{base_url}/api/v1/urls/{short_code}/analytics"
+
+          with urllib.request.urlopen(analytics_url, timeout=10) as response:
+              assert response.status == 200, response.status
+              analytics = json.load(response)
+
+          assert isinstance(analytics, dict), analytics
+
+          print("Analytics response:", analytics)
+          print("URL creation, redirect, and analytics smoke test passed")
+
           PY
 
 
