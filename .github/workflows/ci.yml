@@ -249,6 +249,22 @@ jobs:
                   f"Expected HTTP 429, got statuses: {statuses}"
               )
 
+          # Health endpoints must remain accessible after the
+          # URL creation rate limit has been exceeded.
+          for path in ("/health/live", "/health/ready"):
+              with urllib.request.urlopen(
+                  f"{base_url}{path}",
+                  timeout=10,
+              ) as response:
+                  assert response.status == 200, (
+                      f"{path} returned HTTP {response.status}"
+                  )
+
+              print(f"{path} remains accessible after rate limiting")
+
+          print("Rate limiting isolation verified")
+
+
           print("Rate limiting smoke test passed")
           PY
 
