@@ -222,10 +222,28 @@ jobs:
                   assert headers.get("Retry-After") is not None
                   print("Rate limit enforced with Retry-After header")
                   break
+              
+              assert status == 201, f"Unexpected status: {status}"
 
-              assert status == 201, (
-                  f"Unexpected status: {status}"
+              limit = headers.get("RateLimit-Limit")
+              remaining = headers.get("RateLimit-Remaining")
+              reset = headers.get("RateLimit-Reset")
+
+              assert limit is not None, "Missing RateLimit-Limit"
+              assert remaining is not None, "Missing RateLimit-Remaining"
+              assert reset is not None, "Missing RateLimit-Reset"
+
+              assert int(limit) == 10, f"Unexpected limit: {limit}"
+              assert 0 <= int(remaining) <= int(limit), (
+                  f"Invalid remaining quota: {remaining}"
               )
+              assert int(reset) >= 0, f"Invalid reset value: {reset}"
+
+              print(
+                  f"Rate-limit headers verified: "
+                  f"limit={limit}, remaining={remaining}, reset={reset}"
+              )
+
           else:
               raise AssertionError(
                   f"Expected HTTP 429, got statuses: {statuses}"
