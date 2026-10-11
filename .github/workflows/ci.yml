@@ -106,7 +106,7 @@ jobs:
         run: docker compose --env-file .env.compose logs --no-color
       
 
-      - name: Verify URL creation, redirect, and analytics
+      - name: Verify complete URL lifecycle
         run: |
           python - <<'PY'
           import json
@@ -157,7 +157,29 @@ jobs:
           assert isinstance(analytics, dict), analytics
 
           print("Analytics response:", analytics)
-          print("URL creation, redirect, and analytics smoke test passed")
+          
+          # Deactivate the shortened URL.
+          delete_request = urllib.request.Request(
+              f"{base_url}/api/v1/urls/{short_code}",
+              method="DELETE",
+          )
+
+          with urllib.request.urlopen(delete_request, timeout=10) as response:
+              assert response.status == 204, response.status
+
+          print("URL deactivation passed")
+
+          # Verify that the deactivated URL can no longer redirect.
+          try:
+              opener.open(f"{base_url}/{short_code}", timeout=10)
+              raise AssertionError("Deactivated URL unexpectedly redirected")
+          except urllib.error.HTTPError as response:
+              assert response.code == 404, (
+                  f"Expected 404 Gone, received {response.code}"
+              )
+
+          print("Deactivated URL correctly returns 404 Not Found")
+          print("Complete URL lifecycle smoke test passed")
 
           PY
 
